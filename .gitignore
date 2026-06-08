@@ -25,3 +25,5 @@ replay_pid*
 
 target/*
 .mvn/*
+tools/*
+Phases.txt
