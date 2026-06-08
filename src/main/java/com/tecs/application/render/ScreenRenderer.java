@@ -18,8 +18,8 @@ public class ScreenRenderer {
 
         screenBuffer.setLength(0);
 
-        // screenBuffer.append("\u001B[2J");
         screenBuffer.append("\u001B[H");
+        screenBuffer.append("\u001B[J");
 
         drawRows();
         drawStatusBar();
@@ -38,7 +38,8 @@ public class ScreenRenderer {
     private void drawRows() {
         for (int row = 0; row < terminal.getHeight() - 2; row++) {
             if(row < editor.getDocument().lineCount()) {
-                String line = editor.getDocument().getLine(row);
+                screenBuffer.append("\u001B[K");
+                String line = editor.getLine(row);
                 int width = terminal.getWidth();
 
                 if(line.length() > width) {
@@ -56,7 +57,13 @@ public class ScreenRenderer {
 
         screenBuffer.append("\u001B[7m");
 
-        screenBuffer.append(buildStatusText());
+        String status = buildStatusText();
+
+        if(status.length() < terminal.getWidth()) {
+            status += " ".repeat(terminal.getWidth() - status.length());
+        }
+        
+        screenBuffer.append(status);
 
         screenBuffer.append("\u001B[m");
 

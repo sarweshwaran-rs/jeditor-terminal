@@ -26,7 +26,7 @@ public class Editor {
             return;
         }
 
-        if(cursor.getRow() == 0) {
+        if (cursor.getRow() == 0) {
             return;
         }
         int previousLength = document.getLine(cursor.getRow() - 1).length();
@@ -36,12 +36,12 @@ public class Editor {
 
     public void moveCursorRight() {
         String line = document.getLine(cursor.getRow());
-        if(cursor.getColumn() < line.length()) {
+        if (cursor.getColumn() < line.length()) {
             cursor.moveRight();
             return;
         }
 
-        if(cursor.getRow() >= document.lineCount() - 1) {
+        if (cursor.getRow() >= document.lineCount() - 1) {
             return;
         }
 
@@ -116,10 +116,7 @@ public class Editor {
 
         document.setLine(row, left);
         document.insertLine(row + 1, right);
-
-        cursor.setPosition(
-                row + 1,
-                0);
+        cursor.setPosition(row + 1, 0);
     }
 
     public void deleteForward() {
@@ -152,7 +149,7 @@ public class Editor {
     public void pageDown() {
         cursor.setPosition(Math.min(document.lineCount() - 1, cursor.getRow() + 20), cursor.getColumn());
         adjustColumn();
-        
+
     }
 
     public void processKey(Key key) {
