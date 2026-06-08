@@ -9,6 +9,7 @@ import com.tecs.application.terminal.KeyType;
 
 public class EditorApplication {
 
+    @SuppressWarnings("unused")
     private final EditorOptions options;
     
     public EditorApplication(EditorOptions options) {
@@ -16,7 +17,6 @@ public class EditorApplication {
     }
 
     public void run() {
-        options.getClass();
         JLineTerminal terminal = new JLineTerminal();
         Editor editor = new Editor();
         ScreenRenderer render = new ScreenRenderer(terminal, editor);
@@ -42,6 +42,7 @@ public class EditorApplication {
             terminal.showCursor();
             terminal.exitAlternateScreen();
             terminal.exitRawMode();
+            terminal.close();
         }
     }
 }
