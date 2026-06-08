@@ -26,6 +26,14 @@ public class JLineTerminal implements Terminal{
     }
 
     @Override
+    public TerminalSize getSize() {
+        return new TerminalSize(
+            terminal.getRows(),
+            terminal.getColumns()
+        );
+    }
+
+    @Override
     public void enterRawMode() {
         terminal.enterRawMode();
     }
@@ -79,17 +87,16 @@ public class JLineTerminal implements Terminal{
     }
 
     @Override
-    public int getWidth() {
-        return terminal.getColumns();
-    }
-
-    @Override
-    public int getHeight() {
-        return terminal.getRows();
-    }
-
-    @Override
     public Reader getReader() {
         return terminal.reader();
+    }
+
+    @Override
+    public void close() {
+        try {
+            terminal.close();
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -11,9 +11,9 @@ public interface Terminal {
     void moveCursor(int row, int column);
     void write(String text);
     void flush();
-    int getWidth();
-    int getHeight();
     Reader getReader();
     void enterAlternateScreen();
     void exitAlternateScreen();
+    TerminalSize getSize();
+    void close();
 }

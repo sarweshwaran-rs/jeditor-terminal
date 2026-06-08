@@ -2,6 +2,7 @@ package com.tecs.application.render;
 
 import com.tecs.application.editor.Editor;
 import com.tecs.application.terminal.Terminal;
+import com.tecs.application.terminal.TerminalSize;
 
 public class ScreenRenderer {
     private final Terminal terminal;
@@ -15,14 +16,14 @@ public class ScreenRenderer {
     }
 
     public void refreshScreen() {
-
+        TerminalSize size = terminal.getSize();
+        
         screenBuffer.setLength(0);
-
         screenBuffer.append("\u001B[H");
         screenBuffer.append("\u001B[J");
 
-        drawRows();
-        drawStatusBar();
+        drawRows(size);
+        drawStatusBar(size);
         drawMessageBar();
 
         terminal.hideCursor();
@@ -34,13 +35,13 @@ public class ScreenRenderer {
         terminal.showCursor();
         terminal.flush();
     }
-
-    private void drawRows() {
-        for (int row = 0; row < terminal.getHeight() - 2; row++) {
+    
+    private void drawRows(TerminalSize size) {
+        for (int row = 0; row < size.rows() - 2; row++) {
             if(row < editor.getDocument().lineCount()) {
                 screenBuffer.append("\u001B[K");
                 String line = editor.getLine(row);
-                int width = terminal.getWidth();
+                int width = size.columns();
 
                 if(line.length() > width) {
                     line = line.substring(0, width);
@@ -53,14 +54,14 @@ public class ScreenRenderer {
         }
     }
 
-    private void drawStatusBar() {
+    private void drawStatusBar(TerminalSize size) {
 
         screenBuffer.append("\u001B[7m");
 
         String status = buildStatusText();
 
-        if(status.length() < terminal.getWidth()) {
-            status += " ".repeat(terminal.getWidth() - status.length());
+        if(status.length() < size.columns()) {
+            status += " ".repeat(size.columns() - status.length());
         }
         
         screenBuffer.append(status);
