@@ -1,6 +1,6 @@
 package com.tecs.application.terminal;
 
-import java.io.Reader;
+import org.jline.utils.NonBlockingReader;
 
 public interface Terminal {
     void enterRawMode();
@@ -8,10 +8,11 @@ public interface Terminal {
     void clearScreen();
     void hideCursor();
     void showCursor();
+    void setTitle(String title);
     void moveCursor(int row, int column);
     void write(String text);
     void flush();
-    Reader getReader();
+    NonBlockingReader getReader();
     void enterAlternateScreen();
     void exitAlternateScreen();
     TerminalSize getSize();
