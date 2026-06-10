@@ -44,9 +44,7 @@ public final class EditorLauncher {
             System.out.println(Version.APP_NAME + " " + Version.VERSION);
             return;
         }
-
         app.run();
-        
     }
 
     private void validate(EditorOptions options) {
