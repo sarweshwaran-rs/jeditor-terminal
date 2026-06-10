@@ -3,14 +3,37 @@ package com.tecs.application;
 import com.tecs.application.cli.CommandLineParser;
 import com.tecs.application.cli.EditorOptions;
 import com.tecs.application.editor.EditorApplication;
+import com.tecs.application.editor.StatusMessage;
 import com.tecs.application.exceptions.CommandLineException;
+import com.tecs.application.file.FileManager;
+import com.tecs.application.file.LocalFileManager;
+import com.tecs.application.terminal.JLineTerminal;
+import com.tecs.application.terminal.Terminal;
+import com.tecs.application.ui.ViewMenu;
+import com.tecs.application.ui.dialog.DialogManager;
 
 public final class EditorLauncher {
     public void launch(String[] args) {
         CommandLineParser parser = new CommandLineParser();
         EditorOptions options = parser.parse(args);
-        EditorApplication app = new EditorApplication(options);
+        
         validate(options);
+
+        Terminal terminal = new JLineTerminal();
+        FileManager fileManager = new LocalFileManager();
+        
+        StatusMessage statusMessage = new StatusMessage();
+        ViewMenu viewMenu = new ViewMenu();
+        DialogManager dialogManager = new DialogManager();
+        
+        EditorApplication app = new EditorApplication(
+            options, 
+            terminal, 
+            fileManager, 
+            statusMessage, 
+            viewMenu, 
+            dialogManager
+        );
 
         if(options.isShowHelp()) {
             HelpPrinter.printHelp();
