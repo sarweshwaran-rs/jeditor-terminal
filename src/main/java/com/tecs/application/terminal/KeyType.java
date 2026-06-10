@@ -21,6 +21,8 @@ public enum KeyType {
     DELETE,
     ESCAPE,
 
+    CTRL_L,
+    CTRL_O,
     CTRL_Q,
     CTRL_S,
     CTRL_F,
