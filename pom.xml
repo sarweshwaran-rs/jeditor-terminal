@@ -5,7 +5,7 @@
 
   <groupId>com.tecs.application</groupId>
   <artifactId>jeditor</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 
   <name>JEditor</name>
   <url>https://www.example.com</url>
