@@ -7,8 +7,8 @@ public class Editor {
     private final Document document;
     private final Cursor cursor;
 
-    public Editor() {
-        this.document = new Document();
+    public Editor(Document document) {
+        this.document = document;
         this.cursor = new Cursor();
     }
 
@@ -71,7 +71,7 @@ public class Editor {
 
         String updated = line.substring(0, col) + c + line.substring(col);
 
-        document.setLine(cursor.getRow(), updated);
+        document.replaceLine(cursor.getRow(), updated);
         cursor.moveRight();
     }
 
@@ -88,7 +88,7 @@ public class Editor {
 
             String updated = line.substring(0, col - 1) + line.substring(col);
 
-            document.setLine(row, updated);
+            document.replaceLine(row, updated);
             cursor.moveLeft();
             return;
         }
@@ -98,10 +98,9 @@ public class Editor {
 
         int previousLength = previousLine.length();
 
-        document.setLine(row - 1, previousLine + currentLine);
+        document.replaceLine(row - 1, previousLine + currentLine);
 
         document.removeLine(row);
-
         cursor.setPosition(row - 1, previousLength);
     }
 
@@ -114,7 +113,7 @@ public class Editor {
         String left = current.substring(0, col);
         String right = current.substring(col);
 
-        document.setLine(row, left);
+        document.replaceLine(row, left);
         document.insertLine(row + 1, right);
         cursor.setPosition(row + 1, 0);
     }
@@ -125,12 +124,21 @@ public class Editor {
 
         String line = document.getLine(row);
 
-        if (col >= line.length()) {
+        if (col == line.length()) {
+            if(row >= document.lineCount() - 1) {
+                return;
+            }
+
+            String nextLine = document.getLine(row + 1);
+
+            document.replaceLine(row, line+nextLine);
+
+            document.removeLine(row+1);
             return;
         }
 
         String updated = line.substring(0, col) + line.substring(col + 1);
-        document.setLine(row, updated);
+        document.replaceLine(row, updated);
     }
 
     public void moveCursorHome() {
