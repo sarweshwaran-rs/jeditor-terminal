@@ -2,10 +2,10 @@ package com.tecs.application.terminal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Reader;
 
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
+import org.jline.utils.NonBlockingReader;
 
 public class JLineTerminal implements Terminal{
     private final org.jline.terminal.Terminal terminal;
@@ -56,6 +56,11 @@ public class JLineTerminal implements Terminal{
     }
 
     @Override
+    public void setTitle(String title) {
+        write("\033]0;" + title + "\007");
+    }
+
+    @Override
     public void clearScreen() {
         terminal.puts(InfoCmp.Capability.clear_screen);
         flush();
@@ -87,7 +92,7 @@ public class JLineTerminal implements Terminal{
     }
 
     @Override
-    public Reader getReader() {
+    public NonBlockingReader getReader() {
         return terminal.reader();
     }
 
