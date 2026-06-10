@@ -1,21 +1,31 @@
 package com.tecs.application.terminal;
 
-import java.io.Reader;
+import org.jline.utils.NonBlockingReader;
 
 public class KeyReader {
 
-    private final Reader reader;
+    private final NonBlockingReader reader;
 
-    public KeyReader(Reader reader) {
+    public KeyReader(NonBlockingReader reader) {
         this.reader = reader;
     }
 
     public Key readKey() {
         try {
-            int ch = reader.read();
+            int ch = reader.read(50);
+
+            if(ch == NonBlockingReader.READ_EXPIRED) {
+                return null;
+            }
 
             switch (ch) {
-
+                
+                case 12:
+                    return new Key(KeyType.CTRL_L, '\0');
+                
+                case 15:
+                    return new Key(KeyType.CTRL_O, '\0');
+                    
                 case 17:
                     return new Key(KeyType.CTRL_Q, '\0');
 
