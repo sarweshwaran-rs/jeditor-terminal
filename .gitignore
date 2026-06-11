@@ -27,3 +27,9 @@ target/*
 tools/*
 Phases.txt
 dist/*
+
+# Release artifacts
+release/
+*.msi
+*.zip
+*.exe
