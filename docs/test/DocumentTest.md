@@ -13,7 +13,7 @@
 | shouldStartsWithSingleEmptyLine | Verify default state |
 | shouldInsertLine                | Verify insertion     |
 | shouldRemoveLine                | Verify deletion      |
-| shouldSetLine                   | Verify replacement   |
+| shouldReplaceLine               | Verify replacement   |
 
 ---
 

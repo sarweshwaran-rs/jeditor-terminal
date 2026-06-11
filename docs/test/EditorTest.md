@@ -44,9 +44,9 @@
 
 | Category     | Count |
 | ------------ | ----- |
-| Editor Tests | 21    |
-| Cursor Tests | 9     |
-| Total        | 30    |
+| Editor Tests | 25    |
+| Cursor Tests | 4     |
+| Total        | 29    |
 
 ---
 
