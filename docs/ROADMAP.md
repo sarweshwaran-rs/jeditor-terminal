@@ -45,22 +45,25 @@ Status: Released
 * Unit test suite
 * CLI tests
 * Editor tests
-* Editor tests
 * Cursor tests
 
 ---
 ## Version 0.2.0 - File Management
 
-Planned
+Status: Released
 
 ### Features
 
 * Open existing files
 * Save files
 * Save As
+* Line Number toggle with Gutter Space
 * Modified document tracking
 * File status messages
 * Error handling for file operations
+* About DIalog
+* Save, Save As Dialog
+* Modified Save
 
 ---
 ## Version 0.3.0 - Search & Navigation
