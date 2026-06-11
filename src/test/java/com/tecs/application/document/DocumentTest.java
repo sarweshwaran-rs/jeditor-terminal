@@ -33,9 +33,9 @@ public class DocumentTest {
     }
 
     @Test
-    void shouldSetLine() {
+    void shouldReplaceLine() {
         Document document = new Document();
-        document.setLine(0, "Java");
+        document.replaceLine(0, "Java");
         assertEquals("Java", document.getLine(0));
     }
 }
