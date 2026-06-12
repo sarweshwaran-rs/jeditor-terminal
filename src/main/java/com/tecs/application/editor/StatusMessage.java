@@ -17,7 +17,7 @@ public final class StatusMessage {
 
         long age = System.currentTimeMillis() - timestamp;
 
-        if(age > 5000) {
+        if(age > EditorConstants.STATUS_MESSAGE_TIMEOUT_MS) {
             return "";
         }
         return message;
