@@ -4,10 +4,10 @@ public final class HelpPrinter {
     private HelpPrinter() {}
 
     public static void printHelp() {
-        System.out.println(Version.APP_NAME + " " + Version.VERSION);
+        System.out.println(Version.fullVersion());
         System.out.println();
         System.out.println("A terminal-based text editor written in Java.");
-        System.out.println("UsAGE");
+        System.out.println("USAGE");
         System.out.println("  jeditor [file]");
         System.out.println("  jeditor --open <filename>");
         System.out.println("OPTIONS");
@@ -28,10 +28,11 @@ public final class HelpPrinter {
         System.out.println("  3 Internal error");
 
         System.out.println("KEYBOARD SHORTCUTS");
+        System.out.println("  CTRL+N Create New Document");
         System.out.println("  CTRL+S Save");
         System.out.println("  CTRL+O Open File");
         System.out.println("  CTRL+Q Quit");
         System.out.println("  CTRL+L Toggle Line Numbers");
-        System.out.println("  Tab About Dialog");
+        System.out.println("  CTRL+T Toggle Menu");
     }
 }
