@@ -64,6 +64,14 @@ public class Editor {
         adjustColumn();
     }
 
+    public void insertTab(int tabSize) {
+        int spaces = tabSize - (cursor.getColumn() % tabSize);
+
+        for(int i=0; i < spaces; i++) {
+            insertCharacter(' ');
+        }
+    }
+
     public void insertCharacter(char c) {
         String line = document.getLine(cursor.getRow());
 
