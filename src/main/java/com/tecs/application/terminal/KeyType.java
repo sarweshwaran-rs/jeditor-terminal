@@ -18,14 +18,17 @@ public enum KeyType {
     TAB,
 
     BACKSPACE,
+    SPACE,
     DELETE,
     ESCAPE,
 
+    CTRL_F,
     CTRL_L,
+    CTRL_N,
     CTRL_O,
     CTRL_Q,
     CTRL_S,
-    CTRL_F,
+    CTRL_T,
 
     UNKNOWN
 }

@@ -2,6 +2,8 @@ package com.tecs.application.terminal;
 
 import org.jline.utils.NonBlockingReader;
 
+import com.tecs.application.editor.EditorConstants;
+
 public class KeyReader {
 
     private final NonBlockingReader reader;
@@ -12,7 +14,7 @@ public class KeyReader {
 
     public Key readKey() {
         try {
-            int ch = reader.read(50);
+            int ch = reader.read(EditorConstants.KEY_READ_TIMEOUT_MS);
 
             if(ch == NonBlockingReader.READ_EXPIRED) {
                 return null;
@@ -38,6 +40,12 @@ public class KeyReader {
                 case 13:
                     return new Key(KeyType.ENTER, '\0');
 
+                case 14:
+                    return new Key(KeyType.CTRL_N, '\0');
+                
+                case 20:
+                    return new Key(KeyType.CTRL_T, '\0');
+                
                 case 9:
                     return new Key(KeyType.TAB, '\0');
 
@@ -47,6 +55,9 @@ public class KeyReader {
 
                 case 27:
                     return parseEscape();
+
+                case 32:
+                    return new Key(KeyType.SPACE, '\0');
 
                 default:
                     if (ch >= 32) {
