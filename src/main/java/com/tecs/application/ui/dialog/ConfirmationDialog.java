@@ -5,7 +5,7 @@ import com.tecs.application.terminal.TerminalSize;
 
 public final class ConfirmationDialog extends BaseDialog {
     public ConfirmationDialog() {
-        super("Confirmation Dialog", 80, 5);
+        super("Confirmation Dialog", 80, 7);
     }
 
     private int selected;
