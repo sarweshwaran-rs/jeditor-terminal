@@ -1,0 +1,23 @@
+package com.tecs.application.ui.menu;
+
+import java.util.List;
+
+public final class EditMenu implements Menu {
+
+    private final List<MenuItem> items = List.of(
+            new MenuItem("Find", "", MenuCommand.FIND),
+            new MenuItem("Find Next", "", MenuCommand.FIND_NEXT),
+            new MenuItem("Find Previous", "", MenuCommand.FIND_PREVIOUS),
+            new MenuItem("Go To Line", "", MenuCommand.GO_TO_LINE)
+        );
+
+    @Override
+    public String title() {
+        return "Edit";
+    }
+
+    @Override
+    public List<MenuItem> items() {
+        return items;
+    }
+}
