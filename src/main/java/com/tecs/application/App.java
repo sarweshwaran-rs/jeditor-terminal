@@ -9,6 +9,7 @@ public class App {
             new EditorLauncher().launch(args);
         } catch(FileOperationException ex) {
             System.err.println("File Error: " + ex.getMessage());
+            System.err.println("System Exited with status code: " + ExitCode.FILE_ERROR.code());
             System.exit(ExitCode.FILE_ERROR.code());
         } catch (CommandLineException e) {
             System.err.println("Error: " + e.getMessage());
