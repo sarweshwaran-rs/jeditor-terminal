@@ -8,5 +8,7 @@ public enum DialogAction {
     YES,
     NO,
     CANCEL,
-    OK
+    OK,
+
+    GO_TO_POSITION
 }

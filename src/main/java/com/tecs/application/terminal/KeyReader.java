@@ -36,6 +36,9 @@ public class KeyReader {
 
                 case 6:
                     return new Key(KeyType.CTRL_F, '\0');
+                
+                case 7:
+                    return new Key(KeyType.CTRL_G, '\0');
 
                 case 13:
                     return new Key(KeyType.ENTER, '\0');
@@ -60,7 +63,7 @@ public class KeyReader {
                     return new Key(KeyType.SPACE, '\0');
 
                 default:
-                    if (ch >= 32) {
+                    if (ch > 32) {
                         return new Key(
                                 KeyType.CHARACTER,
                                 (char) ch);
@@ -79,7 +82,7 @@ public class KeyReader {
 
             int c1 = reader.read();
 
-            if (c1 == 'O') {
+            if (c1 == 'O' || c1 == '[')  {
 
                 int c2 = reader.read();
 

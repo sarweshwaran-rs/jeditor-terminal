@@ -8,7 +8,7 @@ public final class EditMenu implements Menu {
             new MenuItem("Find", "", MenuCommand.FIND),
             new MenuItem("Find Next", "", MenuCommand.FIND_NEXT),
             new MenuItem("Find Previous", "", MenuCommand.FIND_PREVIOUS),
-            new MenuItem("Go To Line", "", MenuCommand.GO_TO_LINE)
+            new MenuItem("Go To Line", "Ctrl+G", MenuCommand.GO_TO_LINE)
         );
 
     @Override

@@ -23,6 +23,7 @@ public enum KeyType {
     ESCAPE,
 
     CTRL_F,
+    CTRL_G,
     CTRL_L,
     CTRL_N,
     CTRL_O,
