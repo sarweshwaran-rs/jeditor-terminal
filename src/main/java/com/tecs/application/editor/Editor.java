@@ -175,6 +175,7 @@ public class Editor {
             case ARROW_UP -> moveCursorUp();
             case ARROW_DOWN -> moveCursorDown();
             case CHARACTER -> insertCharacter(key.character());
+            case SPACE -> insertCharacter(' ');
             case BACKSPACE -> deleteChar();
             case ENTER -> insertNewLine();
             case HOME -> moveCursorHome();
