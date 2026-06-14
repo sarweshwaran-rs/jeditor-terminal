@@ -9,7 +9,11 @@ public final class StatusBar {
         String left = "  Ln " 
                         + (editor.getCursor().getRow() + 1)
                         + ", Col "
-                        + (editor.getCursor().getColumn() + 1);
+                        + (editor.getCursor().getColumn() + 1)
+                        + " | " + editor.getDocument().wordCount() 
+                        + " words | "
+                        + editor.getDocument().characterCount()
+                        + " characters ";
 
         String fileName = editor.getDocument()
             .getFilePath() == null 

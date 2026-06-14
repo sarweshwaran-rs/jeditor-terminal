@@ -19,12 +19,12 @@ public class Document {
     public Document(List<String> lines) {
         this.lines = new ArrayList<>(lines);
 
-        if(this.lines.isEmpty()) {
+        if (this.lines.isEmpty()) {
             this.lines.add("");
         }
     }
 
-    public List<String > getLines() {
+    public List<String> getLines() {
         return Collections.unmodifiableList(lines);
     }
 
@@ -66,5 +66,33 @@ public class Document {
     public void markSaved(Path path) {
         this.filePath = path;
         this.modified = false;
+    }
+
+    public int characterCount() {
+        int count = 0;
+
+        for (int i = 0; i < lineCount(); i++) {
+            count += lines.get(i).length();
+
+            if (i < lineCount()) {
+                count += 1;
+            }
+        }
+        return count;
+    }
+
+    public int wordCount() {
+        int count = 0;
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+
+            count += trimmed.split("\\s+").length;
+        }
+        return count;
     }
 }
