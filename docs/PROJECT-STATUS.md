@@ -4,7 +4,6 @@
 A terminal-based text editor written completely in Java ♨️
 `
 `
-Current Version 
 `0.1.0`
 `
 ## Implemented Features
