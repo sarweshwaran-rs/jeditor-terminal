@@ -1,23 +1,26 @@
-# Editor Tests
+# Editor & Navigation Tests
 
 ## Covered Components
 
 * Editor
 * Cursor
+* ViewPort
+* ViewportController
+* StatusBar
 
 ---
 
-### Editing Operations
+## Editing Operations
 
 * Character insertion
 * Character deletion
+* Forward deletion
 * New line insertion
-* Delete forward
 * Multi-line editing
 
 ---
 
-### Navigation Operations
+## Navigation Operations
 
 * Left
 * Right
@@ -30,9 +33,27 @@
 
 ---
 
-### Complex Scenarios
+## Viewport Operations
+
+* Horizontal scrolling
+* Vertical scrolling
+* Row offset validation
+* Column offset validation
+
+---
+
+## Status Bar
+
+* File name display
+* Modified indicator
+* Narrow terminal handling
+
+---
+
+## Complex Scenarios
 
 * Merge lines on backspace
+* Merge lines on delete
 * Move between lines
 * Insert in middle of line
 * Delete in middle of line
@@ -42,11 +63,14 @@
 
 ## Test Statistics
 
-| Category     | Count |
-| ------------ | ----- |
-| Editor Tests | 25    |
-| Cursor Tests | 4     |
-| Total        | 29    |
+| Category                 | Count |
+| ------------------------ | ----- |
+| Editor Tests             | 25    |
+| Cursor Tests             | 4     |
+| ViewPort Tests           | 2     |
+| ViewportController Tests | 2     |
+| StatusBar Tests          | 3     |
+| Total                    | 36    |
 
 ---
 
@@ -54,15 +78,10 @@
 
 Covered:
 
-* Document manipulation
+* Editing operations
 * Cursor movement
 * Navigation logic
 * Multi-line editing
+* Viewport scrolling
+* Status bar rendering
 * Edge cases
-
-Future coverage:
-
-* File I/O
-* Rendering
-* Search
-* Undo/Redo
