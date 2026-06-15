@@ -64,9 +64,7 @@ public class KeyReader {
 
                 default:
                     if (ch > 32) {
-                        return new Key(
-                                KeyType.CHARACTER,
-                                (char) ch);
+                        return new Key(KeyType.CHARACTER, (char) ch);
                     }
 
                     return new Key(KeyType.UNKNOWN, '\0');
@@ -82,7 +80,7 @@ public class KeyReader {
 
             int c1 = reader.read();
 
-            if (c1 == 'O' || c1 == '[')  {
+            if (c1 == 'O')  {
 
                 int c2 = reader.read();
 
@@ -91,6 +89,10 @@ public class KeyReader {
                     case 'B' -> new Key(KeyType.ARROW_DOWN, '\0');
                     case 'C' -> new Key(KeyType.ARROW_RIGHT, '\0');
                     case 'D' -> new Key(KeyType.ARROW_LEFT, '\0');
+
+                    case 'H' -> new Key(KeyType.HOME, '\0');
+                    case 'F' -> new Key(KeyType.END, '\0');
+
                     default -> new Key(KeyType.UNKNOWN, '\0');
                 };
             }
@@ -101,30 +103,40 @@ public class KeyReader {
 
                 switch (c2) {
 
-                    case 'H':
-                        return new Key(KeyType.HOME, '\0');
+                    case 'A' -> new Key(KeyType.ARROW_UP, '\0');
+                    case 'B' -> new Key(KeyType.ARROW_DOWN, '\0');
+                    case 'C' -> new Key(KeyType.ARROW_RIGHT, '\0');
+                    case 'D' -> new Key(KeyType.ARROW_LEFT, '\0');
 
-                    case 'F':
-                        return new Key(KeyType.END, '\0');
+                    case 'H' ->  new Key(KeyType.HOME, '\0');
+                    case 'F' ->  new Key(KeyType.END, '\0');
 
-                    case '1':
+                    case '1' -> {
                         reader.read(); // consume '~'
                         return new Key(KeyType.HOME, '\0');
-                    case '3':
+                    }
+                    
+                    case '3' -> {   
                         reader.read(); // consume '~'
                         return new Key(KeyType.DELETE, '\0');
-
-                    case '4':
+                    }
+                    
+                    case '4' -> {
                         reader.read(); // consume '~'
                         return new Key(KeyType.END, '\0');
-
-                    case '5':
+                    }
+                    
+                    case '5' -> {
                         reader.read(); // consume '~'
                         return new Key(KeyType.PAGE_UP, '\0');
-
-                    case '6':
+                    }
+                    
+                    case '6' -> {
                         reader.read(); // consume '~'
                         return new Key(KeyType.PAGE_DOWN, '\0');
+                    }
+
+                    default -> new Key(KeyType.UNKNOWN, '\0');
                 }
             }
 

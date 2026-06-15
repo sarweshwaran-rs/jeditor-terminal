@@ -30,6 +30,12 @@ public final class StatusBar {
 
         String right = "  [" + fileName + "]  ";
 
+        if(left.length() + right.length() > width) {
+            left = " Ln " 
+                + (editor.getCursor().getRow()+1)
+                +" , Col "
+                + (editor.getCursor().getColumn()+1);
+        }
         int spaces = Math.max(1, width - left.length() - right.length());
 
         return left + " ".repeat(spaces) + right;

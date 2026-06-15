@@ -4,6 +4,8 @@ import java.nio.file.Path;
 
 import com.tecs.application.cli.EditorOptions;
 import com.tecs.application.document.Document;
+import com.tecs.application.editor.navigation.ViewPort;
+import com.tecs.application.editor.navigation.ViewportController;
 import com.tecs.application.editor.search.SearchController;
 import com.tecs.application.editor.search.SearchEngine;
 import com.tecs.application.editor.search.SearchResult;
@@ -36,6 +38,8 @@ public class EditorApplication {
     private final ViewMenu viewMenu;
     private final DialogManager dialogManager;
     private final MenuBar menuBar;
+    private final ViewPort viewport;
+    private final ViewportController viewportController;
     private final SearchState searchState;
     private final SearchController searchController;
     private final SearchEngine searchEngine;
@@ -62,6 +66,8 @@ public class EditorApplication {
         this.searchState = searchState;
         this.searchController = new SearchController(searchState);
         this.searchEngine = new SearchEngine();
+        this.viewport = new ViewPort();
+        this.viewportController = new ViewportController(viewport);
     }
 
     public void run() {
@@ -125,13 +131,16 @@ public class EditorApplication {
 
     private void eventLoop() {
         while (running) {
-            renderer.refreshScreen(editor);
+            updateViewPort();
+            renderer.refreshScreen(editor, viewport);
 
             Key key = keyReader.readKey();
 
             if (key == null) {
                 continue;
             }
+            
+            statusMessage.update(key.type().name());
 
             if (dialogManager.hasDialog()) {
                 Dialog dialog = dialogManager.getActiveDialog();
@@ -479,9 +488,17 @@ public class EditorApplication {
             column = Math.max(0, Math.min(column, line.length()));
 
             editor.getCursor().setPosition(row, column);
-            statusMessage.update("Moved to ine " + (row+1) + ", column " + (column+1));
+            statusMessage.update("Moved to line " + (row+1) + ", column " + (column+1));
         } catch(NumberFormatException ex) {
             dialogManager.show(new MessageDialog("Invalid position"));
         }
+    }
+    
+    private void updateViewPort() {
+        int visibleWidth = terminal.getSize().columns() - renderer.gutterWidth(editor);
+
+        int visibleHeight = terminal.getSize().rows() - 3 - (searchState.isActive() ? 4 : 0);
+
+        viewportController.update(editor, visibleWidth, visibleHeight);
     }
 }

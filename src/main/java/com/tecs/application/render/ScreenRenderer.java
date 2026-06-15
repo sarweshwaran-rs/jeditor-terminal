@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.tecs.application.editor.Editor;
 import com.tecs.application.editor.StatusMessage;
+import com.tecs.application.editor.navigation.ViewPort;
 import com.tecs.application.editor.search.SearchFocus;
 import com.tecs.application.editor.search.SearchState;
 import com.tecs.application.terminal.Terminal;
@@ -17,7 +18,7 @@ import com.tecs.application.ui.menu.MenuBar;
 import com.tecs.application.ui.menu.MenuItem;
 
 public class ScreenRenderer {
-    private static final String GUTTER_SEPARATOR = " | ";
+    private static final String GUTTER_SEPARATOR = "| ";
     private static final int SEARCH_PANEL_HEIGHT = 4;
 
     private final Terminal terminal;
@@ -39,7 +40,7 @@ public class ScreenRenderer {
         this.searchState = searchState;
     }
 
-    public void refreshScreen(Editor editor) {
+    public void refreshScreen(Editor editor, ViewPort viewport) {
         TerminalSize size = terminal.getSize();
         int cursorRowOffset = searchState.isActive() ? (2 + SEARCH_PANEL_HEIGHT) : 2;
         screenBuffer.setLength(0);
@@ -52,7 +53,7 @@ public class ScreenRenderer {
             drawSearchPanel(editor);
         }
 
-        drawRows(editor, size);
+        drawRows(editor, size, viewport);
         drawStatusBar(editor, size);
         drawMessageBar();
 
@@ -80,8 +81,8 @@ public class ScreenRenderer {
             }
         } else if (!dialogManager.hasDialog()) {
             terminal.moveCursor(
-                    editor.getCursor().getRow() + cursorRowOffset,
-                    gutterWidth(editor) + editor.getCursor().getColumn() + 1);
+                    editor.getCursor().getRow()  - viewport.rowOffset() + cursorRowOffset,
+                    gutterWidth(editor) + editor.getCursor().getColumn() - viewport.columnOffset() + 1);
             terminal.showCursor();
         }
         terminal.flush();
@@ -120,16 +121,27 @@ public class ScreenRenderer {
         screenBuffer.append("\r\n");
     }
 
-    private void drawRows(Editor editor, TerminalSize size) {
+    private void drawRows(Editor editor, TerminalSize size, ViewPort viewPort) {
         int searchOffset = searchState.isActive()
                 ? SEARCH_PANEL_HEIGHT
                 : 0;
 
-        for (int row = 0; row < size.rows() - 3 - searchOffset; row++) {
-            drawGutter(editor, row);
+        int visibleRows = size.rows() - 3 - searchOffset;
 
-            if (row < editor.getLineCount()) {
-                String line = editor.getLine(row);
+        for (int scrennRow = 0; scrennRow < visibleRows; scrennRow++) {
+            
+            int documentRow = viewPort.rowOffset() + scrennRow;
+            drawGutter(editor, documentRow);
+
+            if (documentRow < editor.getLineCount()) {
+                String line = editor.getLine(documentRow);
+
+                int columnOffset = viewPort.columnOffset();
+                
+                line = columnOffset < line.length() 
+                    ? line.substring(columnOffset) 
+                    : "";
+                
                 int availableWidth = size.columns() - gutterWidth(editor);
                 if (line.length() > availableWidth) {
                     line = line.substring(0, availableWidth);
@@ -198,7 +210,13 @@ public class ScreenRenderer {
         if (text.isBlank()) {
             text = "HELP: Ctrl - S = save | Ctrl - Q = quit";
         }
-        screenBuffer.append(text);
+
+        int width = terminal.getSize().columns();
+
+        if(text.length() > width) {
+            text = text.substring(0, width);
+        }
+        screenBuffer.append(String.format("%-" + width + "s", text));
     }
 
     private void drawMenuDropdown(TerminalSize size) {
@@ -265,7 +283,7 @@ public class ScreenRenderer {
         screenBuffer.append(GUTTER_SEPARATOR);
     }
 
-    private int gutterWidth(Editor editor) {
+    public int gutterWidth(Editor editor) {
         if (!viewMenu.lineNumbersEnabled()) {
             return GUTTER_SEPARATOR.length() + 1;
         }
