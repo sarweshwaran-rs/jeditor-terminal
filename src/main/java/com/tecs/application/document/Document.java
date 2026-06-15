@@ -74,7 +74,7 @@ public class Document {
         for (int i = 0; i < lineCount(); i++) {
             count += lines.get(i).length();
 
-            if (i < lineCount()) {
+            if (i < lineCount() - 1) {
                 count += 1;
             }
         }
