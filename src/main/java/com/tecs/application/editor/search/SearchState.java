@@ -101,6 +101,15 @@ public final class SearchState {
 
     public void setMatches(List<SearchResult> matches) {
         this.matches = matches;
+
+        if(matches.isEmpty()) {
+            selectedIndex = 0;
+            return;
+        }
+
+        if(selectedIndex >= matches.size()) {
+            selectedIndex = matches.size() - 1;
+        }
     }
 
     public int selectedIndex() {
