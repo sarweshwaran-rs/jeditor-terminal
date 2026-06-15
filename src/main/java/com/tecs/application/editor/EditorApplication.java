@@ -140,8 +140,6 @@ public class EditorApplication {
                 continue;
             }
             
-            statusMessage.update(key.type().name());
-
             if (dialogManager.hasDialog()) {
                 Dialog dialog = dialogManager.getActiveDialog();
 
