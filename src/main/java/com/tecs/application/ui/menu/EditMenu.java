@@ -5,9 +5,7 @@ import java.util.List;
 public final class EditMenu implements Menu {
 
     private final List<MenuItem> items = List.of(
-            new MenuItem("Find", "", MenuCommand.FIND),
-            new MenuItem("Find Next", "", MenuCommand.FIND_NEXT),
-            new MenuItem("Find Previous", "", MenuCommand.FIND_PREVIOUS),
+            new MenuItem("Find", "Ctrl+F", MenuCommand.FIND),
             new MenuItem("Go To Line", "Ctrl+G", MenuCommand.GO_TO_LINE)
         );
 

@@ -8,9 +8,6 @@ public enum MenuCommand {
     QUIT,
 
     FIND,
-    FIND_NEXT,
-    FIND_PREVIOUS,
-
     GO_TO_LINE,
 
     TOGGLE_LINE_NUMBERS,
