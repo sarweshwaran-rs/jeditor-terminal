@@ -95,6 +95,8 @@ Planned
 * C++
 * Plain Text
 
+Status: Released
+
 ---
 ## Version 0.5.0 - Mouse Support
 

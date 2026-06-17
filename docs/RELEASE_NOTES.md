@@ -1,26 +1,70 @@
-# JEditor v0.3.0 Release Notes
+# JEditor v0.4.0 Release Notes
 
 ## Overview
 
-JEditor v0.3.0 introduces search, navigation, scrolling, and document statistics.
+JEditor v0.4.0 introduces the first syntax highlighting system for the editor.
 
-This release significantly improves usability when working with larger files by adding incremental search, match navigation, viewport-based scrolling, and quick navigation tools.
+This release significantly improves code readability by adding language-aware highlighting, search result highlighting, automatic language detection, and visual scrollbars.
+
+With support for multiple programming languages and Markdown documents, JEditor now provides a more productive editing experience while remaining lightweight and terminal-based.
 
 ---
 
 ## New Features
 
-### Search
+### Syntax Highlighting
 
-Added a dedicated search system with:
+Added a regex-based syntax highlighting engine.
 
-* Incremental search
-* Exact match search
-* Case-sensitive search
-* Match counter
-* Match navigation
+Supported token types include:
 
-Search updates in real time as text is entered.
+* Keywords
+* Types
+* Strings
+* Numbers
+* Comments
+* Preprocessor directives
+
+Highlighting is performed in real time during rendering.
+
+---
+
+### Language Detection
+
+JEditor now automatically detects the document language based on file extension.
+
+Supported languages:
+
+* Java
+* Python
+* C
+* C++
+* Markdown
+* Plain Text
+
+Examples:
+
+```text
+Main.java      -> Java
+app.py         -> Python
+program.c      -> C
+vector.cpp     -> C++
+README.md      -> Markdown
+notes.txt      -> Plain Text
+```
+
+---
+
+### Search Highlighting
+
+Search results are now highlighted directly inside the editor.
+
+Features include:
+
+* Highlight all matches
+* Highlight current match
+* Real-time search updates
+* Visual match navigation
 
 Example:
 
@@ -28,182 +72,187 @@ Example:
 Search: editor [3/12]
 ```
 
-Supported shortcuts:
-
-```text
-Ctrl + F     Open Search
-↑            Previous Match
-↓            Next Match
-Enter        Select Match
-Esc          Close Search
-```
+The selected match is visually distinguished from other matches.
 
 ---
 
-### Go To Line
+### Scroll Bar Support
 
-Quickly jump to any position within a document.
+Added visual scrollbars for large documents.
 
-Supported formats:
+Supported scrollbars:
 
-```text
-15
-25:10
-100:1
-```
+* Vertical scrollbar
+* Horizontal scrollbar
 
-Examples:
+Features include:
 
-```text
-15      -> Line 15
-25:10   -> Line 25, Column 10
-```
+* Proportional thumb sizing
+* Viewport position tracking
+* Automatic updates while scrolling
 
-Shortcut:
-
-```text
-Ctrl + G
-```
+Scrollbars provide visual feedback for document position and size.
 
 ---
 
-### Viewport Scrolling
+### Markdown Highlighting
 
-Added viewport-based rendering for large files.
+Added dedicated Markdown support.
 
-Support includes:
+Recognized elements:
 
-* Vertical scrolling
-* Horizontal scrolling
-* Automatic cursor tracking
-* Margin-based viewport movement
-
-Large files can now be edited without rendering the entire document on screen.
-
----
-
-### Document Statistics
-
-Added real-time document statistics.
-
-Status bar now displays:
-
-* Current line
-* Current column
-* Word count
-* Character count
+* Headers
+* Bold text
+* Italic text
+* Inline code
 
 Example:
 
-```text
-Ln 12, Col 8 | 450 words | 2800 characters
+```markdown
+# Header
+
+**Bold**
+
+*Italic*
+
+`Code`
 ```
 
 ---
 
-### Edit Menu
+### Java Highlighting
 
-Added a dedicated Edit menu.
+Added Java syntax rules.
 
-Commands:
+Recognized elements:
 
-* Find
-* Go To Line
+* Keywords
+* Types
+* Strings
+* Numbers
+* Comments
 
-Keyboard shortcuts are displayed directly inside the menu.
+Example:
+
+```java
+public class Main {
+    String name = "JEditor";
+}
+```
+
+---
+
+### Python Highlighting
+
+Added Python syntax rules.
+
+Recognized elements:
+
+* Keywords
+* Built-in types
+* Strings
+* Numbers
+* Comments
+
+Example:
+
+```python
+def greet():
+    print("Hello")
+```
+
+---
+
+### C Highlighting
+
+Added C language syntax support.
+
+Recognized elements:
+
+* Keywords
+* Primitive types
+* Numbers
+* Comments
+* Preprocessor directives
+
+Example:
+
+```c
+#include <stdio.h>
+
+int main() {
+    return 0;
+}
+```
+
+---
+
+### C++ Highlighting
+
+Added C++ syntax support.
+
+Recognized elements:
+
+* Keywords
+* STL types
+* Numbers
+* Comments
+* Preprocessor directives
+
+Example:
+
+```cpp
+class Test {
+public:
+    void run() {}
+};
+```
 
 ---
 
 ## User Interface Improvements
 
-* Search panel
-* Match counter display
-* Improved status bar information
-* Improved viewport behavior
-* Improved navigation workflow
-* Cleaner gutter rendering
-* Better cursor tracking
+* Search result highlighting
+* Current match highlighting
+* Horizontal scrollbar rendering
+* Vertical scrollbar rendering
+* Language display in status bar
+* Improved visual navigation
+* Improved rendering pipeline
 
 ---
 
-## Search Features
+## Status Bar Improvements
 
-Supported search modes:
-
-### Partial Match
-
-Matches occurrences inside words.
+The status bar now displays the active language.
 
 Example:
 
 ```text
-editor
+Ln 12, Col 8 | 450 words | 2800 characters                [Java] [Main.java]
 ```
 
-Matches:
-
-```text
-editor
-texteditor
-editorConfig
-```
-
-### Exact Match
-
-Matches complete words only.
+Modified documents continue to display a dirty indicator.
 
 Example:
 
 ```text
-editor
-```
-
-Matches:
-
-```text
-editor
-```
-
-Does not match:
-
-```text
-texteditor
-editorConfig
-```
-
-### Case Sensitive
-
-Respects letter casing.
-
-Example:
-
-```text
-Editor
-```
-
-Matches:
-
-```text
-Editor
-```
-
-Does not match:
-
-```text
-editor
-EDITOR
+[Main.java *]
 ```
 
 ---
 
 ## Internal Improvements
 
-* Added SearchEngine architecture
-* Added SearchState management
-* Added viewport controller system
+* Added LanguageDefinition architecture
+* Added SyntaxHighlighter system
+* Added Token model
+* Added TokenType classification
+* Added LanguageRegistry
+* Added SearchHighlighter
+* Added ScrollBar rendering system
 * Improved rendering pipeline
-* Improved cursor synchronization
-* Improved editor navigation structure
+* Improved document language management
 
 ---
 
@@ -211,28 +260,34 @@ EDITOR
 
 Current test coverage includes:
 
-### Search Tests
+### Syntax Highlighting Tests
 
-* Incremental search
-* Exact match search
-* Case-sensitive search
-* Match navigation
-* Multiple match handling
+* Java token recognition
+* Python token recognition
+* C token recognition
+* C++ token recognition
+* Markdown token recognition
+* Plain text handling
+
+### Search Highlight Tests
+
+* Multiple match highlighting
+* Current match highlighting
+* Search navigation updates
 * No-match scenarios
 
-### Navigation Tests
+### Scrollbar Tests
 
-* Go To Line
-* Go To Position
-* Horizontal scrolling
-* Vertical scrolling
-* Viewport updates
+* Vertical scrollbar rendering
+* Horizontal scrollbar rendering
+* Large document handling
+* Viewport synchronization
 
-### Statistics Tests
+### Language Detection Tests
 
-* Word count
-* Character count
-* Status bar rendering
+* File extension detection
+* Unknown file handling
+* Plain text fallback
 
 ---
 
@@ -240,27 +295,33 @@ Current test coverage includes:
 
 The following features are planned for future releases:
 
-* Syntax highlighting
-* Search result highlighting
-* Scroll bars
 * Mouse support
 * Undo / Redo
+* Text selection
+* Clipboard operations
 * Multiple buffers
 * Command palette
+* Auto indentation
 * Language-aware editing
 
 ---
 
 ## Next Release
 
-Version 0.4.0 will focus on:
+### Version 0.5.0 - Mouse Support
 
-* Syntax Highlighting
-* Search Highlighting
-* Scroll Bar Support
-* Java Syntax Rules
-* Python Syntax Rules
-* C/C++ Syntax Rules
+Planned Features:
+
+* Click to move cursor
+* Scroll wheel navigation
+* Menu bar interaction
+* Dialog interaction
+* Search panel interaction
+
+Future Enhancements:
+
+* Text selection
+* Drag selection
 
 ---
 
