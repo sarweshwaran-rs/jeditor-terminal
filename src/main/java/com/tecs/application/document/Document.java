@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.tecs.application.highlight.LanguageDefinition;
+
 public class Document {
 
     private final List<String> lines;
     private Path filePath;
     private boolean modified;
+    private LanguageDefinition language;
 
     public Document() {
         this.lines = new ArrayList<>();
@@ -94,5 +97,13 @@ public class Document {
             count += trimmed.split("\\s+").length;
         }
         return count;
+    }
+
+    public LanguageDefinition getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(LanguageDefinition language) {
+        this.language = language;
     }
 }
