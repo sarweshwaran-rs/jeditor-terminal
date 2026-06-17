@@ -8,8 +8,16 @@
   <version>0.4.0</version>
 
   <name>JEditor</name>
-  <url>https://www.example.com</url>
+  <description>Terminal-based text editor written in Java.</description>
+  <url>https://www.github.com/sarweshwaran-rs/jeditor-terminal</url>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+ 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>21</maven.compiler.release>
