@@ -27,7 +27,9 @@ public final class StatusBar {
             fileName += " *";
         }
 
-        String right = " [" + fileName + "] ";
+        String language = editor.getDocument().getLanguage().name();
+
+        String right = "[" + language + "] [" + fileName + "]";
 
         if (left.length() + right.length() > width) {
 

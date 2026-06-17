@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 import com.tecs.application.document.Document;
+import com.tecs.application.highlight.languages.JavaLanguage;
 import com.tecs.application.ui.StatusBar;
 
 public class StatusBarTest {
@@ -15,7 +16,7 @@ public class StatusBarTest {
         Document document = new Document();
 
         document.markSaved(Path.of("Main.java"));
-
+        document.setLanguage(new JavaLanguage());
         Editor editor = new Editor(document);
 
         editor.insertCharacter('A');
@@ -28,7 +29,7 @@ public class StatusBarTest {
     @Test
     void shouldShowFileName() {
         Document document = new Document();
-
+        document.setLanguage(new JavaLanguage());
         document.markSaved(Path.of("Main.java"));
 
         Editor editor = new Editor(document);
@@ -41,9 +42,9 @@ public class StatusBarTest {
     @Test
     void shouldHandleSmallTerminalWidth() {
         Document document = new Document();
-
+        document.setLanguage(new JavaLanguage());
         Editor editor = new Editor(document);
-
+        
         String status = StatusBar.build(editor, 20);
 
         assertTrue(status.length() <= 20);
