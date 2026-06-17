@@ -1,5 +1,6 @@
 package com.tecs.application.render;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.tecs.application.editor.Editor;
@@ -7,8 +8,17 @@ import com.tecs.application.editor.StatusMessage;
 import com.tecs.application.editor.navigation.ViewPort;
 import com.tecs.application.editor.search.SearchFocus;
 import com.tecs.application.editor.search.SearchState;
+import com.tecs.application.highlight.AnsiColor;
+import com.tecs.application.highlight.LanguageDefinition;
+import com.tecs.application.highlight.SearchHighlighter;
+import com.tecs.application.highlight.SyntaxHighlighter;
+import com.tecs.application.highlight.Token;
+import com.tecs.application.highlight.TokenColorMapper;
+import com.tecs.application.highlight.TokenType;
 import com.tecs.application.terminal.Terminal;
 import com.tecs.application.terminal.TerminalSize;
+import com.tecs.application.ui.ScrollBar;
+import com.tecs.application.ui.ScrollBarCalculator;
 import com.tecs.application.ui.StatusBar;
 import com.tecs.application.ui.ViewMenu;
 import com.tecs.application.ui.dialog.Dialog;
@@ -20,6 +30,8 @@ import com.tecs.application.ui.menu.MenuItem;
 public class ScreenRenderer {
     private static final String GUTTER_SEPARATOR = "| ";
     private static final int SEARCH_PANEL_HEIGHT = 4;
+    private static final int SCROLLBAR_WIDTH = 1;
+    private static final int MAX_HORIZONTAL_THUMB_PERCENT = 20;
 
     private final Terminal terminal;
     private final StringBuilder screenBuffer;
@@ -28,6 +40,9 @@ public class ScreenRenderer {
     private final DialogManager dialogManager;
     private final MenuBar menuBar;
     private final SearchState searchState;
+    private final SyntaxHighlighter syntaxHighlighter;
+    private final SearchHighlighter searchHighlighter;
+    private final ScrollBarCalculator scrollBarCalculator;
 
     public ScreenRenderer(Terminal terminal, StatusMessage statusMessage,
             ViewMenu viewMenu, DialogManager dialogManager, MenuBar menuBar, SearchState searchState) {
@@ -38,6 +53,9 @@ public class ScreenRenderer {
         this.dialogManager = dialogManager;
         this.menuBar = menuBar;
         this.searchState = searchState;
+        this.syntaxHighlighter = new SyntaxHighlighter();
+        this.searchHighlighter = new SearchHighlighter();
+        this.scrollBarCalculator = new ScrollBarCalculator();
     }
 
     public void refreshScreen(Editor editor, ViewPort viewport) {
@@ -54,6 +72,7 @@ public class ScreenRenderer {
         }
 
         drawRows(editor, size, viewport);
+        drawHorizontalScrollBar(editor, size, viewport);
         drawStatusBar(editor, size);
         drawMessageBar();
 
@@ -81,7 +100,7 @@ public class ScreenRenderer {
             }
         } else if (!dialogManager.hasDialog()) {
             terminal.moveCursor(
-                    editor.getCursor().getRow()  - viewport.rowOffset() + cursorRowOffset,
+                    editor.getCursor().getRow() - viewport.rowOffset() + cursorRowOffset,
                     gutterWidth(editor) + editor.getCursor().getColumn() - viewport.columnOffset() + 1);
             terminal.showCursor();
         }
@@ -126,30 +145,35 @@ public class ScreenRenderer {
                 ? SEARCH_PANEL_HEIGHT
                 : 0;
 
-        int visibleRows = size.rows() - 3 - searchOffset;
+        int visibleRows = size.rows() - 4 - searchOffset;
 
         for (int scrennRow = 0; scrennRow < visibleRows; scrennRow++) {
-            
-            int documentRow = viewPort.rowOffset() + scrennRow;
-            drawGutter(editor, documentRow);
 
+            int documentRow = viewPort.rowOffset() + scrennRow;
+            
+            drawGutter(editor, documentRow);
+            
             if (documentRow < editor.getLineCount()) {
                 String line = editor.getLine(documentRow);
 
+                LanguageDefinition language = editor.getDocument().getLanguage();
+
                 int columnOffset = viewPort.columnOffset();
-                
-                line = columnOffset < line.length() 
-                    ? line.substring(columnOffset) 
-                    : "";
-                
-                int availableWidth = size.columns() - gutterWidth(editor);
+
+                line = columnOffset < line.length()
+                        ? line.substring(columnOffset)
+                        : "";
+
+                int availableWidth = size.columns() - gutterWidth(editor) - SCROLLBAR_WIDTH;
                 if (line.length() > availableWidth) {
                     line = line.substring(0, availableWidth);
                 }
-                screenBuffer.append(line);
+
+                drawHighlightedLine(documentRow, line, language);
             }
             screenBuffer.append("\r\n");
         }
+        drawVerticalScrollBar(editor, size, visibleRows, viewPort);
     }
 
     private void drawSearchPanel(Editor editor) {
@@ -163,14 +187,14 @@ public class ScreenRenderer {
         screenBuffer.append(searchState.getQuery());
 
         if (!searchState.getQuery().isBlank()) {
-            if(searchState.totalMatches() > 0) {
+            if (searchState.totalMatches() > 0) {
                 screenBuffer.append(" [");
                 screenBuffer.append(searchState.currentMatch());
                 screenBuffer.append("/");
                 screenBuffer.append(searchState.totalMatches());
                 screenBuffer.append("] ");
             } else {
-                screenBuffer.append(" No Matches ");    
+                screenBuffer.append(" No Matches ");
             }
         }
 
@@ -213,7 +237,7 @@ public class ScreenRenderer {
 
         int width = terminal.getSize().columns();
 
-        if(text.length() > width) {
+        if (text.length() > width) {
             text = text.substring(0, width);
         }
         screenBuffer.append(String.format("%-" + width + "s", text));
@@ -334,5 +358,135 @@ public class ScreenRenderer {
             return value.substring(0, width);
         }
         return String.format("%-" + width + "s", value);
+    }
+
+    private void drawHighlightedLine(int documentRow, String line, LanguageDefinition language) {
+        List<Token> tokens = new ArrayList<>();
+
+        tokens.addAll(
+                syntaxHighlighter.highlight(language, line));
+
+        tokens.addAll(
+                searchHighlighter.highlight(documentRow, searchState));
+
+        removeOverlaps(tokens);
+
+        tokens.sort((a, b) -> Integer.compare(a.start(), b.start()));
+        if (tokens.isEmpty()) {
+            screenBuffer.append(line);
+            return;
+        }
+
+        int position = 0;
+
+        for (Token token : tokens) {
+
+            if (position < token.start()) {
+                screenBuffer.append(line, position, token.start());
+            }
+
+            screenBuffer.append(TokenColorMapper.color(token.type()));
+
+            screenBuffer.append(line, token.start(), token.end());
+
+            screenBuffer.append(AnsiColor.RESET);
+
+            position = token.end();
+        }
+
+        if (position < line.length()) {
+            screenBuffer.append(line.substring(position));
+        }
+    }
+
+    private boolean overlaps(Token a, Token b) {
+        return a.start() < b.end() && b.start() < a.end();
+    }
+
+    private boolean isSearchToken(Token token) {
+        return token.type() == TokenType.SEARCH_MATCH
+                || token.type() == TokenType.CURRENT_SEARCH_MATCH;
+    }
+
+    private void removeOverlaps(List<Token> tokens) {
+        List<Token> remove = new ArrayList<>();
+
+        for (Token search : tokens) {
+
+            if (!isSearchToken(search)) {
+                continue;
+            }
+
+            for (Token token : tokens) {
+                if (token == search) {
+                    continue;
+                }
+
+                if (overlaps(search, token)) {
+                    remove.add(token);
+                }
+            }
+        }
+        tokens.removeAll(remove);
+    }
+
+    private void drawVerticalScrollBar(Editor editor, TerminalSize size, int visibleRows, ViewPort viewPort) {
+        if(editor.getLineCount() <= visibleRows) {
+            return;
+        }
+
+        ScrollBar scrollBar = scrollBarCalculator.calculate(editor.getLineCount(), visibleRows, viewPort.rowOffset());
+
+        int editorStartRow = searchState.isActive()
+            ? 2 + SEARCH_PANEL_HEIGHT
+            : 2;
+
+        for(int row = 0; row < visibleRows; row++) {
+            boolean insideThumb = row >= scrollBar.thumbTop()
+                && row < scrollBar.thumbTop() + scrollBar.thumbHeight();
+
+            moveTo(editorStartRow + row, size.columns());
+
+            screenBuffer.append(insideThumb ? "█" : "|");
+        }
+    }
+
+    private int longestLine(Editor editor) {
+        int longest = 0;
+
+        for(int i=0;i<editor.getLineCount(); i++) {
+            longest = Math.max(longest, editor.getLine(i).length());
+        }
+        return longest;
+    }
+
+    private void drawHorizontalScrollBar(Editor editor, TerminalSize size, ViewPort viewPort)  {
+        int contentWidth = size.columns() - gutterWidth(editor);
+
+        int longestLine = longestLine(editor);
+
+        if(longestLine <= contentWidth) {
+            return;
+        }
+        int scrollbarRow = size.rows() - 2;
+        int thumbWidth = Math.max(8, (contentWidth * contentWidth) / longestLine);
+        int maxThumbWidth = (contentWidth * MAX_HORIZONTAL_THUMB_PERCENT) / 100;
+        thumbWidth = Math.min(thumbWidth, maxThumbWidth);
+        
+        int maxOffset = longestLine - contentWidth;
+
+        int maxThumbLeft = contentWidth - thumbWidth;
+        int thumbLeft = maxOffset == 0 
+            ? 0 
+            : (viewPort.columnOffset() * maxThumbLeft) / maxOffset;
+
+        moveTo(scrollbarRow,  gutterWidth(editor) + 1);
+
+        for(int i=0; i<contentWidth ; i++) {
+            boolean insideThumb = i >= thumbLeft
+                && i < thumbLeft + thumbWidth;
+
+            screenBuffer.append(insideThumb ? '▄'  : '─');
+        }
     }
 }

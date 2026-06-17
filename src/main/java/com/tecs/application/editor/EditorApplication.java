@@ -28,6 +28,7 @@ import com.tecs.application.ui.dialog.SaveAsDialog;
 import com.tecs.application.ui.menu.MenuBar;
 import com.tecs.application.ui.menu.MenuCommand;
 import com.tecs.application.file.FileManager;
+import com.tecs.application.highlight.LanguageRegistry;
 
 public class EditorApplication {
 
@@ -43,6 +44,7 @@ public class EditorApplication {
     private final SearchState searchState;
     private final SearchController searchController;
     private final SearchEngine searchEngine;
+    private final LanguageRegistry languageRegistry;
 
     private boolean running = true;
     private boolean pendingQuit;
@@ -68,11 +70,13 @@ public class EditorApplication {
         this.searchEngine = new SearchEngine();
         this.viewport = new ViewPort();
         this.viewportController = new ViewportController(viewport);
+        this.languageRegistry = new LanguageRegistry();
     }
 
     public void run() {
 
         document = loadDocument();
+        document.setLanguage(languageRegistry.detect(document.getFilePath()));
         updateWindowTitle();
 
         editor = new Editor(document);
@@ -207,6 +211,7 @@ public class EditorApplication {
 
             case CTRL_O -> {
                 openDocument();
+                document.setLanguage(languageRegistry.detect(document.getFilePath()));
                 return true;
             }
 
@@ -314,6 +319,7 @@ public class EditorApplication {
             dialogManager.show(new ConfirmationDialog());
         } else {
             dialogManager.show(new OpenFileDialog());
+            document.setLanguage(languageRegistry.detect(document.getFilePath()));
         }
     }
 
@@ -352,6 +358,7 @@ public class EditorApplication {
             switch (result.action()) {
                 case SAVE_AS -> {
                     fileManager.saveAs(document, Path.of(result.value()));
+                    document.setLanguage(languageRegistry.detect(document.getFilePath()));
                     updateWindowTitle();
 
                     statusMessage.update("Saved as " + result.value());
@@ -361,7 +368,7 @@ public class EditorApplication {
 
                 case OPEN -> {
                     document = fileManager.open(Path.of(result.value()));
-
+                    document.setLanguage(languageRegistry.detect(document.getFilePath()));
                     editor = new Editor(document);
                     updateWindowTitle();
                     statusMessage.update("Opened: " + result.value());
@@ -420,6 +427,7 @@ public class EditorApplication {
 
     private void createNewDocument() {
         document = fileManager.createNew();
+        document.setLanguage(languageRegistry.detect(document.getFilePath()));
         editor = new Editor(document);
         updateWindowTitle();
         statusMessage.update("Created new file");
