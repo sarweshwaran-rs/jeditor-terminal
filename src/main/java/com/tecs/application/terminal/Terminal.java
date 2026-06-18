@@ -2,6 +2,8 @@ package com.tecs.application.terminal;
 
 import org.jline.utils.NonBlockingReader;
 
+import com.tecs.application.mouse.MouseReader;
+
 public interface Terminal {
     void enterRawMode();
     void exitRawMode();
@@ -17,4 +19,7 @@ public interface Terminal {
     void exitAlternateScreen();
     TerminalSize getSize();
     void close();
+    void enableMouse();
+    void disableMouse();
+    MouseReader getMouseReader();
 }
