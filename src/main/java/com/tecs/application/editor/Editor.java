@@ -1,6 +1,7 @@
 package com.tecs.application.editor;
 
 import com.tecs.application.document.Document;
+import com.tecs.application.selection.SelectionRange;
 import com.tecs.application.terminal.Key;
 
 public class Editor {
@@ -67,7 +68,7 @@ public class Editor {
     public void insertTab(int tabSize) {
         int spaces = tabSize - (cursor.getColumn() % tabSize);
 
-        for(int i=0; i < spaces; i++) {
+        for (int i = 0; i < spaces; i++) {
             insertCharacter(' ');
         }
     }
@@ -81,6 +82,22 @@ public class Editor {
 
         document.replaceLine(cursor.getRow(), updated);
         cursor.moveRight();
+    }
+
+    public void insertText(String text) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        int len = text.length();
+        int i = 0;
+        while (i < len) {
+            if (text.charAt(i) == '\n') {
+                insertNewLine();
+            } else {
+                insertCharacter(text.charAt(i));
+            }
+            i++;
+        }
     }
 
     public void deleteChar() {
@@ -133,20 +150,45 @@ public class Editor {
         String line = document.getLine(row);
 
         if (col == line.length()) {
-            if(row >= document.lineCount() - 1) {
+            if (row >= document.lineCount() - 1) {
                 return;
             }
 
             String nextLine = document.getLine(row + 1);
 
-            document.replaceLine(row, line+nextLine);
+            document.replaceLine(row, line + nextLine);
 
-            document.removeLine(row+1);
+            document.removeLine(row + 1);
             return;
         }
 
         String updated = line.substring(0, col) + line.substring(col + 1);
         document.replaceLine(row, updated);
+    }
+
+    public void delete(SelectionRange start, SelectionRange end) {
+        if (start.row() == end.row()) {
+            deleteSingleLine(start, end);
+            return;
+        }
+        deleteMultiLine(start, end);
+    }
+
+    private void deleteSingleLine(SelectionRange start, SelectionRange end) {
+        String line = document.getLine(start.row());
+        String updated = line.substring(0, start.column()) + line.substring(end.column());
+        document.replaceLine(start.row(), updated);
+    }
+
+    private void deleteMultiLine(SelectionRange start, SelectionRange end) {
+        String first = document.getLine(start.row());
+        String last = document.getLine(end.row());
+        String merged = first.substring(0, start.column()) + last.substring(end.column());
+        document.replaceLine(start.row(), merged);
+
+        for (int row = end.row(); row > start.row(); row--) {
+            document.removeLine(row);
+        }
     }
 
     public void moveCursorHome() {

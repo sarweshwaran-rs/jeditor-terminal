@@ -3,36 +3,34 @@ package com.tecs.application.editor;
 import java.nio.file.Path;
 
 import com.tecs.application.cli.EditorOptions;
+import com.tecs.application.clipboard.ClipboardService;
 import com.tecs.application.document.Document;
+import com.tecs.application.editor.layout.EditorLayout;
+import com.tecs.application.editor.layout.EditorLayoutCalculator;
 import com.tecs.application.editor.navigation.ViewPort;
 import com.tecs.application.editor.navigation.ViewportController;
-import com.tecs.application.editor.search.SearchController;
-import com.tecs.application.editor.search.SearchEngine;
-import com.tecs.application.editor.search.SearchResult;
-import com.tecs.application.editor.search.SearchState;
+import com.tecs.application.editor.search.*;
+import com.tecs.application.input.*;
+import com.tecs.application.mouse.MouseEvent;
 import com.tecs.application.render.ScreenRenderer;
+import com.tecs.application.selection.Selection;
+import com.tecs.application.selection.SelectionController;
 import com.tecs.application.terminal.Key;
-import com.tecs.application.terminal.KeyReader;
-import com.tecs.application.terminal.KeyType;
+
 import com.tecs.application.terminal.Terminal;
 import com.tecs.application.ui.ViewMenu;
-import com.tecs.application.ui.dialog.AboutDialog;
-import com.tecs.application.ui.dialog.ConfirmationDialog;
-import com.tecs.application.ui.dialog.Dialog;
-import com.tecs.application.ui.dialog.DialogManager;
-import com.tecs.application.ui.dialog.DialogResult;
-import com.tecs.application.ui.dialog.GotoLineDialog;
-import com.tecs.application.ui.dialog.MessageDialog;
-import com.tecs.application.ui.dialog.OpenFileDialog;
-import com.tecs.application.ui.dialog.SaveAsDialog;
+import com.tecs.application.ui.dialog.*;
 import com.tecs.application.ui.menu.MenuBar;
 import com.tecs.application.ui.menu.MenuCommand;
 import com.tecs.application.file.FileManager;
 import com.tecs.application.highlight.LanguageRegistry;
+import com.tecs.application.mouse.MouseController;
 
 public class EditorApplication {
 
     private final EditorOptions options;
+    private final SelectionController selectionController;
+    private final EditorLayoutCalculator layoutCalculator;
     private final Terminal terminal;
     private final FileManager fileManager;
     private final StatusMessage statusMessage;
@@ -45,7 +43,13 @@ public class EditorApplication {
     private final SearchController searchController;
     private final SearchEngine searchEngine;
     private final LanguageRegistry languageRegistry;
-
+    private final ClipboardService clipboard;
+    private MouseController mouseController;
+    private DialogMouseController dialogMouseController;
+    private final Selection selection;
+    private final SearchMouseController searchMouseController;
+    private InputReader inputReader;
+    private EditorLayout layout;
     private boolean running = true;
     private boolean pendingQuit;
     private boolean pendingOpen;
@@ -53,11 +57,12 @@ public class EditorApplication {
     private Editor editor;
     private Document document;
     private ScreenRenderer renderer;
-    private KeyReader keyReader;
+
 
     public EditorApplication(EditorOptions options, Terminal terminal, FileManager fileManager,
             StatusMessage statusMessage, ViewMenu viewMenu, DialogManager dialogManager, MenuBar menuBar,
             SearchState searchState) {
+        this.layoutCalculator = new EditorLayoutCalculator();
         this.options = options;
         this.terminal = terminal;
         this.fileManager = fileManager;
@@ -68,9 +73,13 @@ public class EditorApplication {
         this.searchState = searchState;
         this.searchController = new SearchController(searchState);
         this.searchEngine = new SearchEngine();
+        this.searchMouseController = new SearchMouseController(searchState);
         this.viewport = new ViewPort();
         this.viewportController = new ViewportController(viewport);
         this.languageRegistry = new LanguageRegistry();
+        this.selection = new Selection();
+        this.selectionController = new SelectionController(selection);
+        this.clipboard = new ClipboardService();
     }
 
     public void run() {
@@ -78,15 +87,15 @@ public class EditorApplication {
         document = loadDocument();
         document.setLanguage(languageRegistry.detect(document.getFilePath()));
         updateWindowTitle();
-
+        
         editor = new Editor(document);
-
-        renderer = new ScreenRenderer(terminal, statusMessage, viewMenu, dialogManager, menuBar, searchState);
-        keyReader = new KeyReader(terminal.getReader());
-
+        renderer = new ScreenRenderer(terminal, statusMessage, viewMenu, dialogManager, menuBar, searchState,
+                selection);
+        inputReader = InputReaderFactory.create(terminal);
+        
         try {
             initializeTerminal();
-
+        
             eventLoop();
         } finally {
             shutdownTerminal();
@@ -94,13 +103,15 @@ public class EditorApplication {
     }
 
     private Document loadDocument() {
-        return options.getFileName() == null
-                ? fileManager.createNew()
+        return options.getFileName() == null ? fileManager.createNew()
                 : fileManager.open(Path.of(options.getFileName()));
     }
 
     private void initializeTerminal() {
         terminal.enterRawMode();
+        terminal.enableMouse();
+        mouseController = new MouseController(selectionController);
+        dialogMouseController = new DialogMouseController();
         terminal.enterAlternateScreen();
         terminal.hideCursor();
         terminal.clearScreen();
@@ -123,72 +134,87 @@ public class EditorApplication {
             terminal.close();
         } catch (Exception ignored) {
         }
+        terminal.disableMouse();
     }
 
     private void updateWindowTitle() {
-        String fileName = document.getFilePath() == null
-                ? "Untitled"
-                : document.getFilePath().getFileName()
-                        .toString();
+        String fileName = document.getFilePath() == null ? "Untitled" : document.getFilePath().getFileName().toString();
         terminal.setTitle(fileName + " - JEditor");
     }
 
     private void eventLoop() {
         while (running) {
-            updateViewPort();
-            renderer.refreshScreen(editor, viewport);
-
-            Key key = keyReader.readKey();
-
-            if (key == null) {
+            layout = layoutCalculator.calculate(terminal.getSize(), renderer.gutterWidth(editor),
+                    searchState.isActive(), false);
+            boolean horizonalScrollbar = renderer.longestLine(editor) > layout.getEditorWidth();
+            layout = layoutCalculator.calculate(terminal.getSize(), renderer.gutterWidth(editor),
+                    searchState.isActive(), horizonalScrollbar);
+            InputEvent event = inputReader.read();
+            if (event == null) {
+                renderer.refreshScreen(editor, viewport, layout);
                 continue;
             }
-            
-            if (dialogManager.hasDialog()) {
-                Dialog dialog = dialogManager.getActiveDialog();
-
-                dialog.handleKey(key);
-                processDialogResult();
-                continue;
-            }
-
-            if (searchState.isActive()) {
-                if (key.type() == KeyType.ENTER) {
-                    searchState.nextMatch();
-                    moveToSelectedMatch();
+            if (event instanceof MouseInputEvent(MouseEvent mouseEvent)) {
+                if (dialogManager.hasDialog()) {
+                    Dialog dialog = dialogManager.getActiveDialog();
+                    if (dialogMouseController.handle(mouseEvent, dialog, terminal.getSize())) {
+                        processDialogResult();
+                        renderer.refreshScreen(editor, viewport, layout);
+                        continue;
+                    }
+                } else if (searchState.isActive()) {
+                    if (searchMouseController.handle(mouseEvent, layout)) {
+                        updateSearchMatches();
+                        moveToSelectedMatch();
+                        renderer.refreshScreen(editor, viewport, layout);
+                        continue;
+                    }
+                }
+                if (mouseController.handle(mouseEvent, editor, layout, viewport, viewportController, menuBar)) {
+                    MenuCommand command = mouseController.consumeSelectedCommand();
+                    if (command != null) {
+                        menuBar.deactivate();
+                        executeMenuCommand(command);
+                    }
+                    renderer.refreshScreen(editor, viewport, layout);
                     continue;
                 }
-
-                if (key.type() == KeyType.ARROW_DOWN) {
-                    searchState.nextMatch();
-                    moveToSelectedMatch();
-                    continue;
-                }
-
-                if(key.type() == KeyType.ARROW_UP) {
-                    searchState.previousMatch();
-                    moveToSelectedMatch();
-                    continue;
-                }
-
-                boolean handled = searchController.handleKey(key);
-                if (handled) {
-                    updateSearchMatches();
-                    moveToSelectedMatch();
-                }
-                continue;
             }
-
-            if (menuBar.isActive()) {
-                handleMenuNavigation(key);
-                continue;
+            if (event instanceof KeyboardInputEvent(Key key)) {
+                if (dialogManager.hasDialog()) {
+                    Dialog dialog = dialogManager.getActiveDialog();
+                    dialog.handleKey(key);
+                    processDialogResult();
+                } else if (searchState.isActive()) {
+                    switch (key.type()) {
+                        case ENTER, ARROW_DOWN -> {
+                            searchState.nextMatch();
+                            moveToSelectedMatch();
+                        }
+                        case ARROW_UP -> {
+                            searchState.previousMatch();
+                            moveToSelectedMatch();
+                        }
+                        default -> {
+                            boolean handled = searchController.handleKey(key);
+                            if (handled) {
+                                updateSearchMatches();
+                                moveToSelectedMatch();
+                            }
+                        }
+                    }
+                } else if (menuBar.isActive()) {
+                    handleMenuNavigation(key);
+                } else if (!handleGlobalKey(key)) {
+                    if (key.shift()) {
+                        handleShiftSelection(key);
+                    } else {
+                        handleEditorKey(key);
+                    }
+                }
             }
-
-            if (handleGlobalKey(key)) {
-                continue;
-            }
-
-            editor.processKey(key);
+            ensureCursorVisible();
+            renderer.refreshScreen(editor, viewport, layout);
         }
     }
 
@@ -196,9 +222,17 @@ public class EditorApplication {
         if (key == null) {
             return false;
         }
-
         switch (key.type()) {
-
+            case CTRL_A -> {
+                selectionController.selectAll(editor);
+                return true;
+            }
+            
+            case CTRL_C -> {
+                copySelection();
+                return true;
+            }
+            
             case CTRL_L -> {
                 viewMenu.toggleLineNumbers();
                 return true;
@@ -208,44 +242,55 @@ public class EditorApplication {
                 newDocument();
                 return true;
             }
-
+            
             case CTRL_O -> {
                 openDocument();
                 document.setLanguage(languageRegistry.detect(document.getFilePath()));
                 return true;
             }
-
+            
             case CTRL_Q -> {
                 quitApplication();
                 return true;
             }
-
+            
             case CTRL_S -> {
                 saveCurrentDocument();
                 return true;
             }
-
+            
+            case CTRL_X -> {
+                cutSelection();
+                return true;
+            }
+            
+            case CTRL_V -> {
+                statusMessage.update("CTRL+V");
+                pasteClipboard();
+                return true;
+            }
+            
             case CTRL_F -> {
                 searchState.activate();
                 return true;
             }
-
+            
             case CTRL_G -> {
                 searchState.deactivate();
                 dialogManager.show(new GotoLineDialog());
                 return true;
             }
-
+            
             case TAB -> {
                 editor.insertTab(EditorConstants.TAB_SIZE);
                 return true;
             }
-
+            
             case CTRL_T -> {
                 menuBar.toggle();
                 return true;
             }
-
+            
             default -> {
                 return false;
             }
@@ -255,22 +300,22 @@ public class EditorApplication {
     private void handleMenuNavigation(Key key) {
         switch (key.type()) {
             case ARROW_LEFT -> menuBar.previousMenu();
-
+            
             case ARROW_RIGHT -> menuBar.nextMenu();
-
+            
             case ARROW_UP -> menuBar.previousItem();
-
+            
             case ARROW_DOWN -> menuBar.nextItem();
-
+            
             case ENTER -> {
                 MenuCommand command = menuBar.currentItem().command();
-
+                
                 menuBar.deactivate();
                 executeMenuCommand(command);
             }
-
+            
             case ESCAPE -> menuBar.deactivate();
-
+            
             default -> {
             }
         }
@@ -279,26 +324,26 @@ public class EditorApplication {
     private void executeMenuCommand(MenuCommand command) {
         switch (command) {
             case NEW -> newDocument();
-
+            
             case OPEN -> openDocument();
-
+            
             case SAVE -> saveCurrentDocument();
-
+            
             case SAVE_AS -> dialogManager.show(new SaveAsDialog());
-
+            
             case QUIT -> quitApplication();
-
+            
             case FIND -> searchState.activate();
-
+            
             case GO_TO_LINE -> {
                 searchState.deactivate();
                 dialogManager.show(new GotoLineDialog());
             }
-    
+            
             case TOGGLE_LINE_NUMBERS -> viewMenu.toggleLineNumbers();
-
+            
             case ABOUT -> dialogManager.show(new AboutDialog());
-
+            
             default -> {
             }
         }
@@ -346,14 +391,14 @@ public class EditorApplication {
         if (dialog == null) {
             return;
         }
-
+        
         if (!dialog.isClosed()) {
             return;
         }
 
         DialogResult result = dialog.result();
         dialogManager.close();
-
+        
         try {
             switch (result.action()) {
                 case SAVE_AS -> {
@@ -362,7 +407,7 @@ public class EditorApplication {
                     updateWindowTitle();
 
                     statusMessage.update("Saved as " + result.value());
-
+        
                     executePendingAction();
                 }
 
@@ -373,7 +418,7 @@ public class EditorApplication {
                     updateWindowTitle();
                     statusMessage.update("Opened: " + result.value());
                 }
-
+        
                 case SAVE -> {
                     if (document.getFilePath() == null) {
                         dialogManager.close();
@@ -384,13 +429,14 @@ public class EditorApplication {
                     saveDocument();
                     executePendingAction();
                 }
-
+        
                 case NO -> executePendingAction();
 
                 case CANCEL -> clearPendingActions();
 
+        
                 case GO_TO_POSITION -> gotoPosition(result.value());
-
+        
                 default -> {
                 }
             }
@@ -406,13 +452,13 @@ public class EditorApplication {
             running = false;
             return;
         }
-
+        
         if (pendingOpen) {
             pendingOpen = false;
             dialogManager.show(new OpenFileDialog());
             return;
         }
-
+        
         if (pendingNew) {
             pendingNew = false;
             createNewDocument();
@@ -431,7 +477,7 @@ public class EditorApplication {
         editor = new Editor(document);
         updateWindowTitle();
         statusMessage.update("Created new file");
-
+    
     }
 
     private void saveDocument() {
@@ -449,20 +495,14 @@ public class EditorApplication {
     }
 
     private void updateSearchMatches() {
-        var matches = searchEngine.findAll(
-                document, 
-                searchState.getQuery(), 
-                searchState.options()
-            );
-        
+        var matches = searchEngine.findAll(document, searchState.getQuery(), searchState.options());
         searchState.setMatches(matches);
         searchState.setSelectedIndex(0);
     }
 
     private void moveToSelectedMatch() {
         SearchResult result = searchState.selectedMatch();
-
-        if(result == null) {
+        if (result == null) {
             return;
         }
         editor.getCursor().setPosition(result.row(), result.column());
@@ -470,8 +510,7 @@ public class EditorApplication {
 
     private void gotoPosition(String value) {
         searchState.deactivate();
-
-        if(value == null || value.isBlank()) {
+        if (value == null || value.isBlank()) {
             return;
         }
 
@@ -481,30 +520,110 @@ public class EditorApplication {
             int row = Integer.parseInt(parts[0]);
 
             int column = parts.length > 1 ? Integer.parseInt(parts[1]) - 1 : 0;
-            
-            row--;
 
-            if(row < 0 || row >= document.lineCount()) {
+            row--;
+            if (row < 0 || row >= document.lineCount()) {
                 dialogManager.show(new MessageDialog("Line not found"));
                 return;
             }
 
             String line = document.getLine(row);
-
-            column = Math.max(0, Math.min(column, line.length()));
-
+            column = Math.clamp(column, 0, line.length());
             editor.getCursor().setPosition(row, column);
-            statusMessage.update("Moved to line " + (row+1) + ", column " + (column+1));
-        } catch(NumberFormatException ex) {
+            statusMessage.update("Moved to line " + (row + 1) + ", column " + (column + 1));
+        } catch (NumberFormatException ex) {
             dialogManager.show(new MessageDialog("Invalid position"));
         }
     }
-    
-    private void updateViewPort() {
-        int visibleWidth = terminal.getSize().columns() - renderer.gutterWidth(editor);
 
-        int visibleHeight = terminal.getSize().rows() - 3 - (searchState.isActive() ? 4 : 0);
+    private void handleEditorKey(Key key) {
+        switch (key.type()) {
+            case BACKSPACE, DELETE -> {
+                if (selectionController.hasSelection()) {
+                    selectionController.deleteSelection(editor);
+                } else {
+                    editor.processKey(key);
+                }
+            }
+            case CHARACTER, SPACE, TAB, ENTER -> {
+                if (selectionController.hasSelection()) {
+                    selectionController.deleteSelection(editor);
+                }
+                editor.processKey(key);
+            }
+            default -> {
+                selectionController.clear();
+                editor.processKey(key);
+            }
+        }
+    }
 
-        viewportController.update(editor, visibleWidth, visibleHeight);
+    private void handleShiftSelection(Key key) {
+        switch (key.type()) {
+            case ARROW_LEFT -> extendLeft();
+            case ARROW_RIGHT -> extendRight();
+            case ARROW_UP -> extendUp();
+            case ARROW_DOWN -> extendDown();
+            default -> editor.processKey(key);
+        }
+    }
+
+    private void extendRight() {
+        selectionController.beginIfNeeded(editor);
+        editor.moveCursorRight();
+        selectionController.update(editor);
+    }
+
+    private void extendLeft() {
+        selectionController.beginIfNeeded(editor);
+        editor.moveCursorLeft();
+        selectionController.update(editor);
+    }
+
+    private void extendUp() {
+        selectionController.beginIfNeeded(editor);
+        editor.moveCursorUp();
+        selectionController.update(editor);
+    }
+
+    private void extendDown() {
+        selectionController.beginIfNeeded(editor);
+        editor.moveCursorDown();
+        selectionController.update(editor);
+    }
+
+    private void ensureCursorVisible() {
+        viewportController.ensureCursorVisible(editor, layout.getEditorWidth(), layout.getEditorHeight());
+    }
+
+    private void copySelection() {
+        if (!selectionController.hasSelection()) {
+            return;
+        }
+        String text = selectionController.getSelectedText(editor);
+        statusMessage.update("Copied = [" + text + "]");
+        clipboard.copy(text);
+    }
+
+    private void cutSelection() {
+        if (!selectionController.hasSelection()) {
+            return;
+        }
+        String text = selectionController.getSelectedText(editor);
+        statusMessage.update("Cut = [" + text + "]" + " From Clipboard: " + clipboard.paste());
+        clipboard.copy(text);
+        selectionController.deleteSelection(editor);
+    }
+
+    private void pasteClipboard() {
+        if (!clipboard.hasText()) {
+            return;
+        }
+        if (selectionController.hasSelection()) {
+            selectionController.deleteSelection(editor);
+        }
+        String text = clipboard.paste();
+        statusMessage.update("Paste [" + text + "]" + " From Clipboard: " + clipboard.paste());
+        editor.insertText(text);
     }
 }
