@@ -3,7 +3,7 @@ package com.tecs.application.ui.dialog;
 import com.tecs.application.terminal.Key;
 import com.tecs.application.terminal.TerminalSize;
 
-public class GotoLineDialog extends BaseDialog{
+public final class GotoLineDialog extends BaseDialog{
 
     public GotoLineDialog() {
         super("Go To Position", 50, 8);

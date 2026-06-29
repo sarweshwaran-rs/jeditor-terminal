@@ -14,6 +14,14 @@ public abstract class BaseDialog implements Dialog{
         this.height = height;
     }
 
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
     @Override
     public boolean isClosed() {
         return closed;

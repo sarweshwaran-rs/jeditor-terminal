@@ -49,5 +49,4 @@ public final class OpenFileDialog extends BaseDialog {
 
         DialogRenderer.drawWindow(buffer, size, title, width, height, lines);
     }
-
 }
