@@ -16,12 +16,12 @@ public class MenuBar {
 
     public void activate() {
         active = true;
-        selectedMenu = 0;
-        selectedItem = 0;
     }
 
     public void deactivate() {
         active = false;
+        selectedMenu = 0;
+        selectedItem = 0;
     }
 
     public void toggle() {
@@ -76,5 +76,14 @@ public class MenuBar {
 
     public int selectedItem() {
         return selectedItem;
+    }
+
+    public void selectMenu(int index) {
+        selectedMenu = index;
+        selectedItem = 0;
+    }
+
+    public void selectItem(int index) {
+        selectedItem = index;
     }
 }
