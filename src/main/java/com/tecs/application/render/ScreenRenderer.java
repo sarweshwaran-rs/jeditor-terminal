@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.tecs.application.editor.Editor;
 import com.tecs.application.editor.StatusMessage;
+import com.tecs.application.editor.layout.EditorLayout;
+import com.tecs.application.editor.layout.ScreenPosition;
 import com.tecs.application.editor.navigation.ViewPort;
 import com.tecs.application.editor.search.SearchFocus;
 import com.tecs.application.editor.search.SearchState;
@@ -15,6 +17,7 @@ import com.tecs.application.highlight.SyntaxHighlighter;
 import com.tecs.application.highlight.Token;
 import com.tecs.application.highlight.TokenColorMapper;
 import com.tecs.application.highlight.TokenType;
+import com.tecs.application.selection.Selection;
 import com.tecs.application.terminal.Terminal;
 import com.tecs.application.terminal.TerminalSize;
 import com.tecs.application.ui.ScrollBar;
@@ -23,14 +26,10 @@ import com.tecs.application.ui.StatusBar;
 import com.tecs.application.ui.ViewMenu;
 import com.tecs.application.ui.dialog.Dialog;
 import com.tecs.application.ui.dialog.DialogManager;
-import com.tecs.application.ui.menu.Menu;
-import com.tecs.application.ui.menu.MenuBar;
-import com.tecs.application.ui.menu.MenuItem;
+import com.tecs.application.ui.menu.*;
 
 public class ScreenRenderer {
     private static final String GUTTER_SEPARATOR = "| ";
-    private static final int SEARCH_PANEL_HEIGHT = 4;
-    private static final int SCROLLBAR_WIDTH = 1;
     private static final int MAX_HORIZONTAL_THUMB_PERCENT = 20;
 
     private final Terminal terminal;
@@ -43,9 +42,11 @@ public class ScreenRenderer {
     private final SyntaxHighlighter syntaxHighlighter;
     private final SearchHighlighter searchHighlighter;
     private final ScrollBarCalculator scrollBarCalculator;
+    private final MenuLayout menuLayout;
+    private final Selection selection;
 
     public ScreenRenderer(Terminal terminal, StatusMessage statusMessage,
-            ViewMenu viewMenu, DialogManager dialogManager, MenuBar menuBar, SearchState searchState) {
+            ViewMenu viewMenu, DialogManager dialogManager, MenuBar menuBar, SearchState searchState, Selection selection) {
         this.terminal = terminal;
         this.screenBuffer = new StringBuilder();
         this.statusMessage = statusMessage;
@@ -56,11 +57,12 @@ public class ScreenRenderer {
         this.syntaxHighlighter = new SyntaxHighlighter();
         this.searchHighlighter = new SearchHighlighter();
         this.scrollBarCalculator = new ScrollBarCalculator();
+        this.menuLayout = new MenuLayout();
+        this.selection = selection;
     }
 
-    public void refreshScreen(Editor editor, ViewPort viewport) {
+    public void refreshScreen(Editor editor, ViewPort viewport, EditorLayout layout) {
         TerminalSize size = terminal.getSize();
-        int cursorRowOffset = searchState.isActive() ? (2 + SEARCH_PANEL_HEIGHT) : 2;
         screenBuffer.setLength(0);
         screenBuffer.append("\u001B[H");
         screenBuffer.append("\u001B[J");
@@ -71,8 +73,8 @@ public class ScreenRenderer {
             drawSearchPanel(editor);
         }
 
-        drawRows(editor, size, viewport);
-        drawHorizontalScrollBar(editor, size, viewport);
+        drawRows(editor, size, viewport, layout);
+        drawHorizontalScrollBar(editor, size, viewport, layout);
         drawStatusBar(editor, size);
         drawMessageBar();
 
@@ -99,9 +101,9 @@ public class ScreenRenderer {
                 terminal.hideCursor();
             }
         } else if (!dialogManager.hasDialog()) {
-            terminal.moveCursor(
-                    editor.getCursor().getRow() - viewport.rowOffset() + cursorRowOffset,
-                    gutterWidth(editor) + editor.getCursor().getColumn() - viewport.columnOffset() + 1);
+            ScreenPosition position = layout.documentToScreen(editor.getCursor().getRow(), editor.getCursor().getColumn(), viewport);
+
+            terminal.moveCursor(position.row(), position.column());
             terminal.showCursor();
         }
         terminal.flush();
@@ -140,16 +142,11 @@ public class ScreenRenderer {
         screenBuffer.append("\r\n");
     }
 
-    private void drawRows(Editor editor, TerminalSize size, ViewPort viewPort) {
-        int searchOffset = searchState.isActive()
-                ? SEARCH_PANEL_HEIGHT
-                : 0;
+    private void drawRows(Editor editor, TerminalSize size, ViewPort viewPort, EditorLayout layout) {
+        int visibleRows = layout.getEditorHeight();
+        for (int screenRow = 0; screenRow < visibleRows; screenRow++) {
 
-        int visibleRows = size.rows() - 4 - searchOffset;
-
-        for (int scrennRow = 0; scrennRow < visibleRows; scrennRow++) {
-
-            int documentRow = viewPort.rowOffset() + scrennRow;
+            int documentRow = viewPort.rowOffset() + screenRow;
             
             drawGutter(editor, documentRow);
             
@@ -164,7 +161,7 @@ public class ScreenRenderer {
                         ? line.substring(columnOffset)
                         : "";
 
-                int availableWidth = size.columns() - gutterWidth(editor) - SCROLLBAR_WIDTH;
+                int availableWidth = layout.getEditorWidth();
                 if (line.length() > availableWidth) {
                     line = line.substring(0, availableWidth);
                 }
@@ -173,7 +170,7 @@ public class ScreenRenderer {
             }
             screenBuffer.append("\r\n");
         }
-        drawVerticalScrollBar(editor, size, visibleRows, viewPort);
+        drawVerticalScrollBar(editor, visibleRows, viewPort, layout);
     }
 
     private void drawSearchPanel(Editor editor) {
@@ -220,16 +217,18 @@ public class ScreenRenderer {
     }
 
     private void drawStatusBar(Editor editor, TerminalSize size) {
+        moveTo(size.rows() - 1, 1);
+
         screenBuffer.append("\u001B[44m");
         screenBuffer.append("\u001B[37m");
 
         String status = StatusBar.build(editor, size.columns());
         screenBuffer.append(status);
         screenBuffer.append("\u001B[0m");
-        screenBuffer.append("\r\n");
     }
 
     private void drawMessageBar() {
+        moveTo(terminal.getSize().rows(), 1);
         String text = statusMessage.currentMessage();
         if (text.isBlank()) {
             text = "HELP: Ctrl - S = save | Ctrl - Q = quit";
@@ -249,18 +248,21 @@ public class ScreenRenderer {
             return;
         }
 
-        int left = calculateMenuStartPosition();
-        int width = calculateMenuWidth(menu);
+        MenuBounds bounds = menuLayout.dropdownBounds(menuBar);
+
+        int left = bounds.left();
+        int width = bounds.width();
+
         List<MenuItem> items = menu.items();
 
-        moveTo(2, left);
+        moveTo(bounds.top(), left);
 
         screenBuffer.append("┌");
         screenBuffer.append("─".repeat(width - 2));
         screenBuffer.append("┐");
 
         for (int i = 0; i < items.size(); i++) {
-            moveTo(3 + i, left);
+            moveTo(bounds.top() + 1 + i, left);
             screenBuffer.append("│");
 
             MenuItem item = items.get(i);
@@ -284,7 +286,7 @@ public class ScreenRenderer {
             screenBuffer.append("│");
         }
 
-        moveTo(items.size() + 3, left);
+        moveTo(bounds.top() + bounds.height() - 1, left);
         screenBuffer.append("└");
         screenBuffer.append("─".repeat(width - 2));
         screenBuffer.append("┘");
@@ -321,25 +323,6 @@ public class ScreenRenderer {
         return Math.max(2, digits);
     }
 
-    private int calculateMenuStartPosition() {
-        int position = 1;
-        for (int i = 0; i < menuBar.selectedMenu(); i++) {
-            Menu menu = menuBar.menus().get(i);
-
-            position += menu.title().length() + 3;
-        }
-        return position;
-    }
-
-    private int calculateMenuWidth(Menu menu) {
-        int width = 0;
-        for (MenuItem item : menu.items()) {
-            String line = item.title() + "  " + item.shortcut();
-            width = Math.max(width, line.length());
-        }
-        return width + 4;
-    }
-
     private int visibleMenuBarWidth() {
         int width = 0;
         for (int i = 0; i < menuBar.menuCount(); i++) {
@@ -371,31 +354,18 @@ public class ScreenRenderer {
 
         removeOverlaps(tokens);
 
-        tokens.sort((a, b) -> Integer.compare(a.start(), b.start()));
-        if (tokens.isEmpty()) {
-            screenBuffer.append(line);
-            return;
-        }
+        for (int column = 0; column < line.length(); column++) {
+            TokenType type = tokenTypeAt(tokens, column);
 
-        int position = 0;
-
-        for (Token token : tokens) {
-
-            if (position < token.start()) {
-                screenBuffer.append(line, position, token.start());
+            if (selection.contains(documentRow, column)) {
+                screenBuffer.append("\u001B[47m");
+                screenBuffer.append("\u001B[30m");
+            } else if (type != null) {
+                screenBuffer.append(TokenColorMapper.color(type));
             }
 
-            screenBuffer.append(TokenColorMapper.color(token.type()));
-
-            screenBuffer.append(line, token.start(), token.end());
-
+            screenBuffer.append(line.charAt(column));
             screenBuffer.append(AnsiColor.RESET);
-
-            position = token.end();
-        }
-
-        if (position < line.length()) {
-            screenBuffer.append(line.substring(position));
         }
     }
 
@@ -430,28 +400,26 @@ public class ScreenRenderer {
         tokens.removeAll(remove);
     }
 
-    private void drawVerticalScrollBar(Editor editor, TerminalSize size, int visibleRows, ViewPort viewPort) {
+    private void drawVerticalScrollBar(Editor editor, int visibleRows, ViewPort viewPort, EditorLayout layout) {
         if(editor.getLineCount() <= visibleRows) {
             return;
         }
 
         ScrollBar scrollBar = scrollBarCalculator.calculate(editor.getLineCount(), visibleRows, viewPort.rowOffset());
 
-        int editorStartRow = searchState.isActive()
-            ? 2 + SEARCH_PANEL_HEIGHT
-            : 2;
+        int editorStartRow = layout.getEditorTop();
 
         for(int row = 0; row < visibleRows; row++) {
             boolean insideThumb = row >= scrollBar.thumbTop()
                 && row < scrollBar.thumbTop() + scrollBar.thumbHeight();
 
-            moveTo(editorStartRow + row, size.columns());
+            moveTo(editorStartRow + row, layout.scrollbarLeft());
 
             screenBuffer.append(insideThumb ? "█" : "|");
         }
     }
 
-    private int longestLine(Editor editor) {
+    public int longestLine(Editor editor) {
         int longest = 0;
 
         for(int i=0;i<editor.getLineCount(); i++) {
@@ -460,8 +428,8 @@ public class ScreenRenderer {
         return longest;
     }
 
-    private void drawHorizontalScrollBar(Editor editor, TerminalSize size, ViewPort viewPort)  {
-        int contentWidth = size.columns() - gutterWidth(editor);
+    private void drawHorizontalScrollBar(Editor editor, TerminalSize size, ViewPort viewPort, EditorLayout layout)  {
+        int contentWidth = layout.getEditorWidth();
 
         int longestLine = longestLine(editor);
 
@@ -480,7 +448,7 @@ public class ScreenRenderer {
             ? 0 
             : (viewPort.columnOffset() * maxThumbLeft) / maxOffset;
 
-        moveTo(scrollbarRow,  gutterWidth(editor) + 1);
+        moveTo(scrollbarRow,  layout.textLeft());
 
         for(int i=0; i<contentWidth ; i++) {
             boolean insideThumb = i >= thumbLeft
@@ -488,5 +456,14 @@ public class ScreenRenderer {
 
             screenBuffer.append(insideThumb ? '▄'  : '─');
         }
+    }
+
+    private TokenType tokenTypeAt(List<Token> tokens, int column) {
+        for (Token token : tokens) {
+            if (column >= token.start() && column < token.end()) {
+                return token.type();
+            }
+        }
+        return null;
     }
 }
