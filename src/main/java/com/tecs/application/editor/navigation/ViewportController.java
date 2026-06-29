@@ -10,7 +10,7 @@ public final class ViewportController {
         this.viewPort = viewPort;
     }
 
-    public void update(Editor editor, int visibleWidth, int visibleHeight) {
+    public void ensureCursorVisible(Editor editor, int visibleWidth, int visibleHeight) {
         updateHorizontal(editor, visibleWidth);
         updateVertical(editor, visibleHeight);
     }
@@ -44,6 +44,19 @@ public final class ViewportController {
 
         if(cursorRow >= offset + visibleHeight - margin) {
             viewPort.setRowOffset(cursorRow - visibleHeight + margin + 1);
+        }
+    }
+
+    public void scrollUp(ViewPort viewPort) {
+        if(viewPort.rowOffset() > 0) {
+            viewPort.setRowOffset(viewPort.rowOffset() - 1);
+        }
+    }
+
+    public void scrollDown(ViewPort viewPort, Editor editor, int visibleHeight) {
+        int maxOffset = Math.max(0, editor.getLineCount() - visibleHeight);
+        if(viewPort.rowOffset() < maxOffset) {
+            viewPort.setRowOffset(viewPort.rowOffset() + 1);
         }
     }
 }
