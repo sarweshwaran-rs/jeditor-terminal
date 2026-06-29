@@ -8,8 +8,6 @@ import org.jline.utils.InfoCmp;
 import org.jline.utils.NonBlockingReader;
 
 import com.tecs.application.mouse.MouseProtocol;
-import com.tecs.application.mouse.MouseReader;
-import com.tecs.application.mouse.MouseReaderFactory;
 
 public class JLineTerminal implements Terminal{
     private final org.jline.terminal.Terminal terminal;
@@ -119,10 +117,5 @@ public class JLineTerminal implements Terminal{
     public void disableMouse() {
         write(MouseProtocol.DISABLE);
         flush();
-    }
-
-    @Override
-    public MouseReader getMouseReader() {
-        return MouseReaderFactory.create(this);
     }
 }

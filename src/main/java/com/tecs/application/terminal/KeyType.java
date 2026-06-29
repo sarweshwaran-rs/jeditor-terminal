@@ -31,5 +31,12 @@ public enum KeyType {
     CTRL_S,
     CTRL_T,
 
+    CTRL_A,
+    CTRL_C,
+    CTRL_V,
+    CTRL_X,
+    CTRL_Y,
+    CTRL_Z,
+
     UNKNOWN
 }
