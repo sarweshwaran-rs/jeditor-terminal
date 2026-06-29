@@ -5,7 +5,7 @@
 
   <groupId>com.tecs.application</groupId>
   <artifactId>jeditor</artifactId>
-  <version>0.4.0</version>
+  <version>0.5.0</version>
 
   <name>JEditor</name>
   <description>Terminal-based text editor written in Java.</description>
@@ -20,7 +20,7 @@
  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>21</maven.compiler.release>
+    <maven.compiler.release>22</maven.compiler.release>
   </properties>
 
   <dependencyManagement>
@@ -62,10 +62,7 @@
             <version>3.13.0</version>
 
             <configuration>
-                <release>21</release>
-                <!-- <compilerArgs>
-                    <arg>enable-preview</arg>
-                </compilerArgs> -->
+                <release>22</release>
             </configuration>
         </plugin>
 
@@ -74,9 +71,6 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <version>3.3.0</version>
-            <!-- <configuration> -->
-                <!-- <argLine>enable-preview</argLine> -->
-            <!-- </configuration> -->
         </plugin>
 
         <!-- Executable JAR -->
