@@ -4,11 +4,14 @@
 
 * Editor
 * Cursor
+* Document
+* Keyboard Parser
+* Mouse Parser
+* Search Engine
+* Search State
 * ViewPort
 * ViewportController
 * StatusBar
-* KeyboardParser
-* MouseParser
 
 ---
 
@@ -17,13 +20,13 @@
 * Character insertion
 * Character deletion
 * Forward deletion
-* New line insertion
 * Text insertion
 * Multi-line text insertion
 * Empty text insertion
-* Single-line selection deletion
-* Multi-line selection deletion
+* New-line insertion
 * Multi-line editing
+* Selection deletion
+* Multi-line selection deletion
 
 ---
 
@@ -41,6 +44,25 @@
 
 ---
 
+## Keyboard Parsing
+
+* Control keys
+* Characters
+* Space
+* ANSI escape sequences
+* Arrow keys
+
+---
+
+## Mouse Parsing
+
+* Button press
+* Button release
+* Scroll events
+* Invalid sequences
+
+---
+
 ## Viewport Operations
 
 * Horizontal scrolling
@@ -54,52 +76,33 @@
 
 * File name display
 * Modified indicator
-* Narrow terminal handling
-
----
-
-## Input Parsing
-
-### Keyboard
-
-* Control key parsing
-* Character parsing
-* Space parsing
-* ANSI escape sequence parsing
-
-### Mouse
-
-* Left click
-* Mouse release
-* Scroll up
-* Invalid sequence handling
+* Narrow terminal rendering
 
 ---
 
 ## Complex Scenarios
 
-* Merge lines on backspace
-* Merge lines on delete
-* Move between lines
+* Merge lines using Backspace
+* Merge lines using Delete
+* Cursor movement across lines
 * Insert in middle of line
 * Delete in middle of line
-* Repeated edits
-* Multi-line text insertion
-* Selection deletion across multiple lines
+* Multi-line insertion
+* Multi-line deletion
+* Repeated editing
 
 ---
 
 ## Test Statistics
 
-| Category                 | Count |
-|--------------------------|------:|
-| Editor Tests             | 30 |
-| Cursor Tests             | 5 |
-| ViewPort Tests           | 2 |
-| ViewportController Tests | 2 |
-| StatusBar Tests          | 3 |
-| Keyboard/Mouse Parser Tests | 8 |
-| Total                    | 50 |
+| Category                            |   Count |
+| ----------------------------------- | ------: |
+| Editor Tests                        |      30 |
+| Cursor Tests                        |       5 |
+| Document Tests                      |      12 |
+| Keyboard & Mouse Parser Tests       |       8 |
+| Search / ViewPort / StatusBar Tests |      19 |
+| **Total**                           | **79+** |
 
 ---
 
@@ -110,11 +113,11 @@ Covered:
 * Editing operations
 * Cursor movement
 * Navigation logic
+* Selection editing
 * Text insertion
-* Selection deletion
-* Multi-line editing
-* Viewport scrolling
-* Status bar rendering
 * Keyboard parsing
 * Mouse parsing
+* Search functionality
+* Viewport scrolling
+* Status bar rendering
 * Edge-case handling

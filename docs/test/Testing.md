@@ -2,23 +2,25 @@
 
 ## Overview
 
-JEditor uses JUnit 5 for automated testing.
+JEditor uses **JUnit 5** for automated testing.
 
 The test suite validates:
 
-* Command line parsing
+* Command-line parsing
 * Document operations
 * Cursor movement
 * Editor behavior
-* Search functionality
+* Text insertion and deletion
+* Selection editing
 * Keyboard parsing
 * Mouse parsing
+* Search functionality
 * Viewport navigation
 * Status bar rendering
 
 ---
 
-## Running Tests
+# Running Tests
 
 Execute:
 
@@ -30,7 +32,7 @@ Expected output:
 
 ```text
 BUILD SUCCESS
-Tests run: 80
+Tests run: 80+
 Failures: 0
 Errors: 0
 Skipped: 0
@@ -38,21 +40,21 @@ Skipped: 0
 
 ---
 
-## Test Categories
+# Test Categories
 
-### Command Line Tests
+## Command Line Tests
 
 Verifies:
 
 * Help flag parsing
 * Version flag parsing
-* Open file argument parsing
+* File argument parsing
 * Invalid argument handling
 * Multiple file protection
 
 ---
 
-### Document Tests
+## Document Tests
 
 Verifies:
 
@@ -61,13 +63,15 @@ Verifies:
 * Line deletion
 * Line replacement
 * Character counting
+* Multi-line character counting
 * Word counting
 * Empty line handling
+* Multiple-space handling
 * Modified document tracking
 
 ---
 
-### Cursor Tests
+## Cursor Tests
 
 Verifies:
 
@@ -75,174 +79,181 @@ Verifies:
 * Move right
 * Move up
 * Move down
-* Cursor positioning
-* Cursor boundary behavior
+* Set cursor position
 
 ---
 
-### Editor Tests
+## Editor Tests
 
 Verifies:
+
+### Editing
 
 * Character insertion
 * Character deletion
 * Forward deletion
-* New line insertion
-* Text insertion
-* Multi-line text insertion
-* Empty text insertion
-* Single-line editing
+* New-line insertion
 * Multi-line editing
-* Selection deletion
-* Line merging
-* Cursor navigation
-* Home navigation
-* End navigation
+* Insert text
+* Insert multi-line text
+* Ignore empty text insertion
+* Delete selected text
+* Delete multi-line selection
+* Merge lines using Backspace
+* Merge lines using Delete
+
+### Navigation
+
+* Move left
+* Move right
+* Move up
+* Move down
+* Home
+* End
 * Page Up
 * Page Down
-* Document modification tracking
-* File opening behavior
+
+### Document State
+
+* Modified document tracking
+* Save state handling
+* Opening non-existing files
+
+### Complex Editing
+
+* Insert characters in middle of line
+* Delete characters in middle of line
+* Cursor movement across lines
+* Repeated editing scenarios
 
 ---
 
-### Keyboard Parser Tests
+## Keyboard Parser Tests
 
 Verifies:
 
-* Control key parsing
+* Control-key parsing
 * Character parsing
 * Space parsing
 * ANSI escape sequence parsing
+* Arrow key parsing
 
 ---
 
-### Mouse Parser Tests
+## Mouse Parser Tests
 
 Verifies:
 
-* Left click parsing
-* Mouse release parsing
-* Mouse wheel parsing
-* Invalid sequence handling
+* Left button press
+* Button release
+* Scroll up
+* Invalid escape sequence handling
 
 ---
 
-### Search Engine Tests
+## Search Engine Tests
 
 Verifies:
 
-* Partial match search
-* Exact match search
-* Case-sensitive search
+* Partial matches
+* Exact matches
+* Case-sensitive searching
 * Empty query handling
-* Multiple matches on a single line
-* Match navigation
-* Match wrapping
-
----
-
-### Search State Tests
-
-Verifies:
-
+* Multiple matches
 * Search activation
 * Search deactivation
 * Query insertion
 * Query deletion
 * Match navigation
 * Match wrapping
-* Selected match tracking
 * Match index safety
 
 ---
 
-### ViewPort Tests
+## ViewPort Tests
 
 Verifies:
 
 * Row offset validation
 * Column offset validation
-* Negative offset protection
 
 ---
 
-### Viewport Controller Tests
+## Viewport Controller Tests
 
 Verifies:
 
 * Horizontal scrolling
 * Vertical scrolling
-* Cursor tracking
-* Viewport adjustment
+* Cursor visibility management
 
 ---
 
-### Status Bar Tests
+## Status Bar Tests
 
 Verifies:
 
 * File name rendering
-* Modified indicator rendering
-* Narrow terminal handling
-* Status bar formatting
+* Modified indicator
+* Narrow terminal rendering
 
 ---
 
-## Current Test Statistics
+# Current Test Statistics
 
-| Component | Tests |
-|-----------|------:|
-| CommandLineParser | 5 |
-| Document | 12 |
-| Cursor | 5 |
-| Editor | 30 |
-| Keyboard/Mouse Parser | 8 |
-| SearchEngine | 16 |
-| StatusBar | 3 |
-| **Total** | **80** |
+| Component                     |   Tests |
+| ----------------------------- | ------: |
+| CommandLineParser             |       5 |
+| Document                      |      12 |
+| Cursor                        |       5 |
+| Editor                        |      30 |
+| Keyboard & Mouse Parser       |       8 |
+| Search / ViewPort / StatusBar |      19 |
+| **Total**                     | **79+** |
+
+> **Note:** The total test count may increase as new features are added.
 
 ---
 
-## Coverage Areas
+# Coverage Areas
 
 Covered:
 
-* Command line processing
+* Command-line processing
 * Document manipulation
 * Cursor movement
 * Text editing operations
-* Text insertion
-* Selection deletion
 * Multi-line editing
-* Search algorithms
-* Search state management
+* Selection deletion
+* Text insertion
 * Keyboard parsing
 * Mouse parsing
+* Search algorithms
+* Search state management
 * Viewport scrolling
 * Status bar rendering
-* Edge-case navigation
+* Navigation edge cases
 
 ---
 
-## Future Test Coverage
+# Future Test Coverage
 
 Planned:
 
-* Native Win32 input integration tests
-* ANSI input reader tests
-* Rendering engine tests
-* Menu system tests
-* Mouse controller tests
-* Configuration system tests
-* Syntax highlighting tests
-* Undo / Redo tests
-* Clipboard integration tests
-* Multiple buffer tests
-* Language feature tests
+* Win32 input integration
+* ANSI input reader
+* Mouse controller
+* Rendering engine
+* Menu system
+* Clipboard support
+* Undo / Redo
+* Multiple document buffers
+* Syntax highlighting
+* Language-specific parsing
 
 ---
 
-## Continuous Verification
+# Continuous Verification
 
 Before every release:
 
@@ -254,53 +265,72 @@ Requirements:
 
 * All tests must pass
 * No skipped tests
-* No compiler warnings
+* No compiler errors
 * Release builds must be generated only from a passing test suite
 
 ---
 
-## Version Coverage
+# Version Coverage
 
-### v0.1.0
+## v0.1.0
 
 Covered:
 
 * CLI
 * Document model
 * Cursor
-* Core editor operations
+* Basic editor operations
 
-### v0.2.0
+---
+
+## v0.2.0
 
 Covered:
 
-* File management workflows
+* File management
+* Save workflow
 * Modified document tracking
-* Save behavior
 * Additional editor edge cases
 
-### v0.3.0
+---
+
+## v0.3.0
 
 Covered:
 
 * Incremental search
-* Search state management
-* Exact match search
+* Exact search
 * Case-sensitive search
 * Match navigation
-* Horizontal scrolling
-* Vertical scrolling
-* Word count
-* Character count
-* Status bar improvements
+* Viewport scrolling
+* Document statistics
+* Status bar enhancements
 
-### v0.4.0
+---
+
+## v0.4.0
 
 Covered:
 
-* Text insertion
+* Syntax highlighting
+* Language framework
+* Tokenization
+* Rendering improvements
+
+---
+
+## v0.5.0
+
+Covered:
+
+* Cross-platform input abstraction
+* ANSI keyboard parsing
+* ANSI mouse parsing
+* Win32 keyboard support
+* Mouse event parsing
+* Text insertion API
+* Multi-line text insertion
 * Selection deletion
-* Keyboard parser
-* Mouse parser
-* Improved cursor operations
-* Extended editor editing scenarios
+* Expanded editor editing scenarios
+* Additional cursor functionality
+* Comprehensive parser unit tests
