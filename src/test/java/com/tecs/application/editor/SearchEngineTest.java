@@ -210,7 +210,7 @@ public class SearchEngineTest {
 
         ViewportController controller = new ViewportController(viewport);
 
-        controller.update(editor, 20, 20);
+        controller.ensureCursorVisible(editor, 20, 20);
 
         assertTrue(viewport.columnOffset() > 0);
     }
@@ -227,7 +227,7 @@ public class SearchEngineTest {
 
         ViewportController controller = new ViewportController(viewport);
 
-        controller.update(editor, 80, 10);
+        controller.ensureCursorVisible(editor, 80, 10);
 
         assertTrue(viewport.rowOffset() > 0);
     }
