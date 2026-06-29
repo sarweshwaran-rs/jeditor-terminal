@@ -1,4 +1,4 @@
-package com.tecs.application.selection;
+package com.tecs.application.clipboard;
 
 public final class ClipboardService {
     private String text = "";
