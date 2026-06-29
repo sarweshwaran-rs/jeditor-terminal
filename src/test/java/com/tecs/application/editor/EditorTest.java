@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import com.tecs.application.document.Document;
 import com.tecs.application.file.FileManager;
 import com.tecs.application.file.LocalFileManager;
+import com.tecs.application.selection.SelectionRange;
 
 public class EditorTest {
 
@@ -321,7 +322,7 @@ public class EditorTest {
         FileManager manager = new LocalFileManager();
 
         Document document = manager.open(Path.of("does-not-exist.txt"));
-        
+
         assertEquals("does-not-exist.txt", document.getFilePath().toString());
 
         assertFalse(document.isModified());
@@ -342,5 +343,60 @@ public class EditorTest {
 
         assertEquals(1, editor.getLineCount());
         assertEquals("AB", editor.getLine(0));
+    }
+
+    @Test
+    void shouldInsertText() {
+        Editor editor = new Editor(new Document());
+
+        editor.insertText("Hello");
+
+        assertEquals("Hello", editor.getLine(0));
+    }
+
+    @Test
+    void shouldInsertMultiLineText() {
+        Editor editor = new Editor(new Document());
+
+        editor.insertText("Hello\nWorld");
+        assertEquals(2, editor.getLineCount());
+        assertEquals("Hello", editor.getLine(0));
+        assertEquals("World", editor.getLine(1));
+    }
+
+    @Test
+    void shouldIgnoreEmptyInsertText() {
+        Editor editor = new Editor(new Document());
+
+        editor.insertText("");
+
+        assertEquals("", editor.getLine(0));
+    }
+
+    @Test
+    void shouldDeleteSingleLineSelection() {
+        Editor editor = new Editor(new Document());
+
+        editor.insertText("Hello World");
+
+        editor.delete(
+                new SelectionRange(0, 5),
+                new SelectionRange(0, 11));
+
+        assertEquals("Hello", editor.getLine(0));
+    }
+
+    @Test
+    void shouldDeleteMultiLineSelection() {
+        Editor editor = new Editor(new Document());
+
+        editor.insertText("Hello\nWorld");
+
+        editor.delete(
+                new SelectionRange(0, 2),
+                new SelectionRange(1, 3));
+
+        assertEquals(1, editor.getLineCount());
+        assertEquals("Held", editor.getLine(0));
     }
 }

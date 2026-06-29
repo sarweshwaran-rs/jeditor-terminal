@@ -33,4 +33,14 @@ public class CursorTest {
         cursor.moveUp();
         assertEquals(0, cursor.getRow());
     }
+
+    @Test
+    void shouldSetPosition() {
+        Cursor cursor = new Cursor();
+
+        cursor.setPosition(5, 10);
+
+        assertEquals(5, cursor.getRow());
+        assertEquals(10, cursor.getColumn());
+    }
 }
