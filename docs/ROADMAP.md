@@ -84,7 +84,6 @@ Status:
 ---
 ## Version 0.4.0 - Syntax Highlighting
 
-Planned
 ### Languages 
 
 * Search Highlight
@@ -95,12 +94,11 @@ Planned
 * C++
 * Plain Text
 
-Status: Released
+Status: 
+    Released
 
 ---
 ## Version 0.5.0 - Mouse Support
-
-Planned
 
 ### Features
 
@@ -109,6 +107,8 @@ Planned
 * Menu interaction
 * Dialog interaction
 
+Status:
+    Released
 ---
 
 ## Version 0.6.0 - Configuration
@@ -122,6 +122,8 @@ Planned
 * Config file support
 * User prefrences
 
+Status:
+    Working.
 ---
 ## Version 0.7.0 - Advanced Editing
 

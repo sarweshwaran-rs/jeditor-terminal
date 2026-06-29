@@ -1,327 +1,348 @@
-# JEditor v0.4.0 Release Notes
+# JEditor v0.5.0 Release Notes
 
 ## Overview
 
-JEditor v0.4.0 introduces the first syntax highlighting system for the editor.
+JEditor  v0.5.0 introduces a complete cross-platform input system together with full mouse support, text selection, and major editor interaction improvements.
+This release transforms JEditor from a keyborad-only editor into a modern terminal editor capable of respondig to both keyboard and mouse input on Linux/macOS (ANSI terminals) and Windows consoles.
 
-This release significantly improves code readability by adding language-aware highlighting, search result highlighting, automatic language detection, and visual scrollbars.
-
-With support for multiple programming languages and Markdown documents, JEditor now provides a more productive editing experience while remaining lightweight and terminal-based.
-
----
-
-## New Features
-
-### Syntax Highlighting
-
-Added a regex-based syntax highlighting engine.
-
-Supported token types include:
-
-* Keywords
-* Types
-* Strings
-* Numbers
-* Comments
-* Preprocessor directives
-
-Highlighting is performed in real time during rendering.
+The internal architecture has also been significantly refactored by introducing a unified input abstraction, platform-specific input adapters, editor layout managemnt, and selection infrastructure, laying the foundation for future clipboard operations and advanced editing features.
 
 ---
 
-### Language Detection
+# New Features
 
-JEditor now automatically detects the document language based on file extension.
+## Cross-Platform Input System
+Introduced a unified input architecture that delivers both keyboard and mouse events through a single interface.
 
-Supported languages:
+New components include:
 
-* Java
-* Python
-* C
-* C++
-* Markdown
-* Plain Text
+* InputReader,
+* InputReaderFactory,
+* InputEvent,
+* KeyboardInputEvent,
+* MouseInputEvent.
 
-Examples:
+Supported platforms:
 
-```text
-Main.java      -> Java
-app.py         -> Python
-program.c      -> C
-vector.cpp     -> C++
-README.md      -> Markdown
-notes.txt      -> Plain Text
-```
+* ANSI terminals,
+* Windows Console (Win32 FFM).
+
+The editor now processes Keyboard and mouse input consistently across all supported platforms.
 
 ---
+## Keyboard Input Improvements
 
-### Search Highlighting
+The keyboard parser has been redesigned to support platform-independent key handling.
 
-Search results are now highlighted directly inside the editor.
+Supported Keys include:
+
+* Character input,
+* Escape,
+* Enter,
+* Tab,
+* Backspace,
+* Delete,
+* Arrow Keys,
+* Home,
+* End,
+* Page Up,
+* Page Down.
+
+Supported shortcut include:
+
+* Ctrl + A,
+* Ctrl + C,
+* Ctrl + F,
+* Ctrl + G,
+* Ctrl + L,
+* Ctrl + N,
+* Ctrl + O,
+* Ctrl + Q,
+* Ctrl + S,
+* Ctrl + T,
+* Ctrl + V,
+* Ctrl + X,
+* Ctrl + Y,
+* Ctrl + Z.
+
+ANSI escape sequences and native Windows Keyboard events are translated into a common internal representation.
+
+---
+## Complete Mouse Support
+
+JEditor now includes full cross-platform mouse support.
+
+Supported actions:
+
+* Left click,
+* Right click,
+* Middle click,
+* Mouse release,
+* Mouse movement,
+* Drag,
+* Double click,
+* Vertical scrolling,
+* Horizontal Scrolling.
+
+Mouse support is available on both ANSI terminals and Windows consoles.
+
+---
+## Editor Layout System
+
+Added a dedicated layout engine responsible for translating screen coordinate into document coordinates.
+
+The layout model manages:
+* Menu bar,
+* Editor area,
+* Gutter,
+* Scrollbars,
+* Search panel,
+* Viewport mapping.
+
+This removes coordinate calculations from editor logic and centralizes rendering geomertry.
+
+---
+## Mouse Cursor Navigation
+
+The editor now supports mouse-driven cursor movement.
+
+Feature include:
+
+* Click to position cursor,
+* Automatic cursor clamping,
+* Viewpor visibility management,
+* Cursor visibility management.
+
+The editor immediately updates after every mouse interaction.
+
+---
+## Mouse-Based Text Selection
+
+Introduced the first complete text selection system.
 
 Features include:
 
-* Highlight all matches
-* Highlight current match
-* Real-time search updates
-* Visual match navigation
+* Click and drag selection,
+* Selection tracking,
+* Selection updates during dragging,
+* Automatic selection clearing,
+* Single-line selection,
+* Multi-line selection.
 
-Example:
-
-```text
-Search: editor [3/12]
-```
-
-The selected match is visually distinguished from other matches.
+The editing engine now supports deleting selected text across multiple lines.
+This infrasructure prepares JEditor for future clipboard operations.
 
 ---
+## Menu Bar Interaction
 
-### Scroll Bar Support
+The menu system is now fully mouse-aware.
 
-Added visual scrollbars for large documents.
+Supported operations:
 
-Supported scrollbars:
+* Open menus,
+* Hover menus,
+* Selet menu items,
+* Execute menu commands,
+* Click outside to dismiss menus.
 
-* Vertical scrollbar
-* Horizontal scrollbar
+Menus behave similarly to traditional desktop application.
+
+---
+## Search Panel Interaction
+
+The search interface now supports mouse interaction.
+
+Feature include:
+
+* Clickable search controls,
+* Search navigation,
+* Match selection,
+* Improved interaction workflow.
+
+---
+## Mouse Wheel Navigation
+
+Viewport scrolling now supports mouse wheel input.
 
 Features include:
 
-* Proportional thumb sizing
-* Viewport position tracking
-* Automatic updates while scrolling
-
-Scrollbars provide visual feedback for document position and size.
-
----
-
-### Markdown Highlighting
-
-Added dedicated Markdown support.
-
-Recognized elements:
-
-* Headers
-* Bold text
-* Italic text
-* Inline code
-
-Example:
-
-```markdown
-# Header
-
-**Bold**
-
-*Italic*
-
-`Code`
-```
+* Vertical scrolling,
+* Horizontal scrolling,
+* Automatic viewport synchronization,
+* Cursor visibility maintenance.
 
 ---
+## Editing Improvements
 
-### Java Highlighting
+The editor now includes several new editing capabilities.
 
-Added Java syntax rules.
+New operations:
 
-Recognized elements:
+* Insert text,
+* Insert multi-line text,
+* Delete selected text,
+* Delete multi-line selections.
 
-* Keywords
-* Types
-* Strings
-* Numbers
-* Comments
-
-Example:
-
-```java
-public class Main {
-    String name = "JEditor";
-}
-```
+The APIs simplify future implementation of copy, cut, and paste functionality.
 
 ---
+# Windows Native Input Support
 
-### Python Highlighting
+Implemented a native Windows input backend using the Java Foreign Function & Memory (FFM) API.
 
-Added Python syntax rules.
+New components include:
 
-Recognized elements:
+* Win32Support,
+* Win32InputReader,
+* WindowsKeyAdapter,
+* WindowsMouseAdapter,
+* Win32Structures,
+* Win32Layouts,
+* Win32Constants
 
-* Keywords
-* Built-in types
-* Strings
-* Numbers
-* Comments
-
-Example:
-
-```python
-def greet():
-    print("Hello")
-```
+The Windows backed now supports native keyboard and mouse events without relying on ANSI sequences.
 
 ---
+# ANSI Terminal Improvements
 
-### C Highlighting
+The ANSI backend has been redesigned.
 
-Added C language syntax support.
+Improvements include:
 
-Recognized elements:
-
-* Keywords
-* Primitive types
-* Numbers
-* Comments
-* Preprocessor directives
-
-Example:
-
-```c
-#include <stdio.h>
-
-int main() {
-    return 0;
-}
-```
+* Unified input reader,
+* Dedicated Keyboard parser,
+* Dedicated mouse parse,
+* ANSI mouse protocol support,
+* Improved editor event handling.
 
 ---
+# Internal Improvements
 
-### C++ Highlighting
+Major architectual improvements include:
 
-Added C++ syntax support.
-
-Recognized elements:
-
-* Keywords
-* STL types
-* Numbers
-* Comments
-* Preprocessor directives
-
-Example:
-
-```cpp
-class Test {
-public:
-    void run() {}
-};
-```
+* Unified input abstraction,
+* Event-driven input model,
+* Shared keyboard representation,
+* Shared mouse representations,
+* Platform-specific adapters,
+* Shared keyboard representation,
+* Improved separation of concerns,
+* Reduced platform-specific code duplication,
+* Simplified editor event handling.
 
 ---
+# Testing
 
-## User Interface Improvements
+The automated test suite has been significantly expanded.
 
-* Search result highlighting
-* Current match highlighting
-* Horizontal scrollbar rendering
-* Vertical scrollbar rendering
-* Language display in status bar
-* Improved visual navigation
-* Improved rendering pipeline
+Current coverage includes:
 
----
+### Document Tests
 
-## Status Bar Improvements
+* Document initialization,
+* Line editing,
+* Character counting,
+* Word counting,
+* Modified state tracking.
 
-The status bar now displays the active language.
+### Cursor Tets
 
-Example:
+* Cursor movements,
+* Positon updates.
 
-```text
-Ln 12, Col 8 | 450 words | 2800 characters                [Java] [Main.java]
-```
+### Editor Tests
 
-Modified documents continue to display a dirty indicator.
+* Character editing,
+* Multi-line editing,
+* Text insertion,
+* Multi-line insertion,
+* Selection deletion,
+* Multi-line Selection deletion,
+* Navigation,
+* File handling,
+* Edge cases.
 
-Example:
+### Keyboard Parser Tests
 
-```text
-[Main.java *]
-```
+* Character parsing,
+* Control keys,
+* ANSI escape sequences,
+* Navigation Keys.
 
----
+### Mouse Parser Tests
 
-## Internal Improvements
+* Button press,
+* Button Release,
+* Scroll events,
+* Invalid sequence handling.
 
-* Added LanguageDefinition architecture
-* Added SyntaxHighlighter system
-* Added Token model
-* Added TokenType classification
-* Added LanguageRegistry
-* Added SearchHighlighter
-* Added ScrollBar rendering system
-* Improved rendering pipeline
-* Improved document language management
+### Search Tests
 
----
+* Incremental search,
+* Exact search,
+* Case-Sensivitive search,
+* Match navigation,
+* Viewport sysnchronization.
 
-## Testing
-
-Current test coverage includes:
-
-### Syntax Highlighting Tests
-
-* Java token recognition
-* Python token recognition
-* C token recognition
-* C++ token recognition
-* Markdown token recognition
-* Plain text handling
-
-### Search Highlight Tests
-
-* Multiple match highlighting
-* Current match highlighting
-* Search navigation updates
-* No-match scenarios
-
-### Scrollbar Tests
-
-* Vertical scrollbar rendering
-* Horizontal scrollbar rendering
-* Large document handling
-* Viewport synchronization
-
-### Language Detection Tests
-
-* File extension detection
-* Unknown file handling
-* Plain text fallback
+Current automated coverage exceed **79 unit tests**.
 
 ---
+# Performance Improvements
 
-## Known Limitations
+* Reduced input processing oerhead,
+* Shared input parsing pipeline,
+* Faster event dispatch,
+* Improved platform abstraction,
+* Cleaner rendering interaction.
+
+---
+# Breaking Internal Changes
+
+The input subsystem has been completely redesigned.
+
+Legacy components have been replaced by:
+
+* InputReader,
+* KeyboardParser,
+* MouseParser,
+* InputEvent hierarchy,
+* Platform-specific input adapters.
+
+This change simplifies future feature development while maintaining existing editor behavior.
+
+---
+# Known Limitations
 
 The following features are planned for future releases:
 
-* Mouse support
-* Undo / Redo
-* Text selection
-* Clipboard operations
-* Multiple buffers
-* Command palette
-* Auto indentation
-* Language-aware editing
-
+* Clipboard integration,
+* Undo / Redo,
+* Multiple document buffers,
+* Configurations system,
+* Additional command-line options,
+* Language aware editing,
+* Tree-Sitter integration.
 ---
+# Next Release
 
-## Next Release
+## Version 0.6.0
+Planned features include:
 
-### Version 0.5.0 - Mouse Support
+### Configuration System
 
-Planned Features:
+* User configuration file,
+* Themes,
+* Editor preferences
+* Tab size,
+* Auto indentation.
 
-* Click to move cursor
-* Scroll wheel navigation
-* Menu bar interaction
-* Dialog interaction
-* Search panel interaction
+### New Command-Line Options
 
-Future Enhancements:
-
-* Text selection
-* Drag selection
+* Theme Selection,
+* Read-only mode,
+* Disable syntax highlighting,
+* Tab size configuration,
+* Configuration file override.
 
 ---
 
