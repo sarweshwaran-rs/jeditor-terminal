@@ -11,6 +11,8 @@ The test suite validates:
 * Cursor movement
 * Editor behavior
 * Search functionality
+* Keyboard parsing
+* Mouse parsing
 * Viewport navigation
 * Status bar rendering
 
@@ -28,7 +30,7 @@ Expected output:
 
 ```text
 BUILD SUCCESS
-Tests run: 65+
+Tests run: 80
 Failures: 0
 Errors: 0
 Skipped: 0
@@ -73,6 +75,7 @@ Verifies:
 * Move right
 * Move up
 * Move down
+* Cursor positioning
 * Cursor boundary behavior
 
 ---
@@ -85,7 +88,12 @@ Verifies:
 * Character deletion
 * Forward deletion
 * New line insertion
+* Text insertion
+* Multi-line text insertion
+* Empty text insertion
+* Single-line editing
 * Multi-line editing
+* Selection deletion
 * Line merging
 * Cursor navigation
 * Home navigation
@@ -93,6 +101,29 @@ Verifies:
 * Page Up
 * Page Down
 * Document modification tracking
+* File opening behavior
+
+---
+
+### Keyboard Parser Tests
+
+Verifies:
+
+* Control key parsing
+* Character parsing
+* Space parsing
+* ANSI escape sequence parsing
+
+---
+
+### Mouse Parser Tests
+
+Verifies:
+
+* Left click parsing
+* Mouse release parsing
+* Mouse wheel parsing
+* Invalid sequence handling
 
 ---
 
@@ -105,9 +136,8 @@ Verifies:
 * Case-sensitive search
 * Empty query handling
 * Multiple matches on a single line
-* Multiple matches across lines
-* Forward searching
-* Backward searching
+* Match navigation
+* Match wrapping
 
 ---
 
@@ -160,15 +190,16 @@ Verifies:
 
 ## Current Test Statistics
 
-| Component         | Tests |
-| ----------------- | ----: |
-| CommandLineParser |     5 |
-| Document          |    12 |
-| Cursor            |     4 |
-| Editor            |    25 |
-| SearchEngine      |    16 |
-| StatusBar         |     3 |
-| Total             |    65 |
+| Component | Tests |
+|-----------|------:|
+| CommandLineParser | 5 |
+| Document | 12 |
+| Cursor | 5 |
+| Editor | 30 |
+| Keyboard/Mouse Parser | 8 |
+| SearchEngine | 16 |
+| StatusBar | 3 |
+| **Total** | **80** |
 
 ---
 
@@ -180,9 +211,13 @@ Covered:
 * Document manipulation
 * Cursor movement
 * Text editing operations
+* Text insertion
+* Selection deletion
 * Multi-line editing
 * Search algorithms
 * Search state management
+* Keyboard parsing
+* Mouse parsing
 * Viewport scrolling
 * Status bar rendering
 * Edge-case navigation
@@ -193,14 +228,15 @@ Covered:
 
 Planned:
 
-* File manager integration tests
+* Native Win32 input integration tests
+* ANSI input reader tests
 * Rendering engine tests
-* Dialog tests
 * Menu system tests
-* Mouse support tests
+* Mouse controller tests
 * Configuration system tests
 * Syntax highlighting tests
 * Undo / Redo tests
+* Clipboard integration tests
 * Multiple buffer tests
 * Language feature tests
 
@@ -257,3 +293,14 @@ Covered:
 * Word count
 * Character count
 * Status bar improvements
+
+### v0.4.0
+
+Covered:
+
+* Text insertion
+* Selection deletion
+* Keyboard parser
+* Mouse parser
+* Improved cursor operations
+* Extended editor editing scenarios
