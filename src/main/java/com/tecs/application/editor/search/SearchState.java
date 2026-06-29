@@ -87,6 +87,10 @@ public final class SearchState {
         return focus;
     }
 
+    public void setFocus(SearchFocus focus) {
+        this.focus = focus;
+    }
+
     public void nextFocus() {
         switch (focus) {
             case QUERY -> focus = SearchFocus.EXACT_MATCH;
