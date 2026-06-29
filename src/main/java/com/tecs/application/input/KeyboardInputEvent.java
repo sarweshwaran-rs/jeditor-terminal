@@ -1,4 +1,6 @@
 package com.tecs.application.input;
 
-public record KeyboardInputEvent() {
+import com.tecs.application.terminal.Key;
+
+public record KeyboardInputEvent(Key key) implements InputEvent {
 }

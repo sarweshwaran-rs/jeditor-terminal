@@ -1,4 +1,4 @@
 package com.tecs.application.input;
 
-public interface InputEvent {
+public sealed interface InputEvent permits KeyboardInputEvent, MouseInputEvent {
 }

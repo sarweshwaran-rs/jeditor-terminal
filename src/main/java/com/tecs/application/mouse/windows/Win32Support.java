@@ -10,28 +10,22 @@ import java.lang.foreign.FunctionDescriptor;
 import java.lang.invoke.MethodHandle;
 
 public final class Win32Support {
-    
-    
-    @SuppressWarnings("preview")
-    private final Linker linker;
-    @SuppressWarnings("preview")
-    private final SymbolLookup kernel32;
-    @SuppressWarnings("preview")
+
     private MemorySegment inputHandle;
     private int originalConsoleMode;
-    @SuppressWarnings("preview")
     private final Arena arena;
     private final MethodHandle getStdHandle;
     private final MethodHandle getConsoleMode;
     private final MethodHandle setConsoleMode;
     private final MethodHandle readConsoleInputW;
-    
-    @SuppressWarnings("preview")
+    private final MemorySegment record;
+    private final MemorySegment numberRead;
+
     public Win32Support() {
-        linker = Linker.nativeLinker();
+        Linker linker = Linker.nativeLinker();
         arena = Arena.ofShared();
 
-        kernel32 = SymbolLookup.libraryLookup("kernel32", arena);
+        SymbolLookup kernel32 = SymbolLookup.libraryLookup("kernel32", arena);
         getStdHandle = linker.downcallHandle(
             kernel32.find("GetStdHandle").orElseThrow(),
             FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.JAVA_INT)
@@ -61,9 +55,11 @@ public final class Win32Support {
                 ValueLayout.ADDRESS
             )
         );
+
+        record = arena.allocate(Win32Layouts.INPUT_RECORD);
+        numberRead = arena.allocate(ValueLayout.JAVA_INT);
     }
 
-    @SuppressWarnings("preview")
     private MemorySegment getInputHandle()  {
         try {
             if(inputHandle == null) {
@@ -75,7 +71,6 @@ public final class Win32Support {
         }
     }
 
-    @SuppressWarnings("preview")
     private int getConsoleMode() {
         try {
             MemorySegment mode =arena.allocate(ValueLayout.JAVA_INT);
@@ -118,14 +113,13 @@ public final class Win32Support {
         setConsoleMode(mode);
     }
 
-   @SuppressWarnings("preview")
     public MemorySegment readInputRecord() {
         try {
-            MemorySegment record = arena.allocate(Win32Layouts.INPUT_RECORD);
-
-            MemorySegment numberRead = arena.allocate(ValueLayout.JAVA_INT);
-
-            int result = (int) readConsoleInputW.invoke(getInputHandle(), record, 1, numberRead);
+            int result = (int) readConsoleInputW.invoke(
+                    getInputHandle(),
+                    record,
+                    1,
+                    numberRead);
 
             if(result == 0) {
                 throw new IllegalStateException("ReadConsoleInputW failed.");

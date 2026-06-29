@@ -1,4 +1,6 @@
 package com.tecs.application.input;
 
-public class InputReader {
+
+public interface InputReader {
+    InputEvent read();
 }

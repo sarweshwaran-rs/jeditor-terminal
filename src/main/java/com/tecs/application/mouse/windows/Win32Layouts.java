@@ -16,7 +16,6 @@ final class Win32Layouts {
      *  SHORT Y;
      * } COORD;
      */
-    @SuppressWarnings("preview")
     static final MemoryLayout COORD = MemoryLayout.structLayout(
         ValueLayout.JAVA_SHORT.withName("X"),
         ValueLayout.JAVA_SHORT.withName("Y")
@@ -30,12 +29,23 @@ final class Win32Layouts {
      *  DWORD dwEventFlags;
      * } MOUSE_EVENT_ECORD;
      */
-    @SuppressWarnings("preview")
     static final MemoryLayout MOUSE_EVENT_RECORD =  MemoryLayout.structLayout(
         COORD.withName("dwMousePosition"),
         ValueLayout.JAVA_INT.withName("dwButtonState"),
         ValueLayout.JAVA_INT.withName("dwControlKeyState"),
         ValueLayout.JAVA_INT.withName("dwEventFlags")
+    );
+
+    static final MemoryLayout KEY_EVENT_RECORD = MemoryLayout.structLayout(
+            ValueLayout.JAVA_INT.withName("bKeyDown"),
+            ValueLayout.JAVA_SHORT.withName("wRepeatCount"),
+            ValueLayout.JAVA_SHORT.withName("wVirtualKeyCode"),
+            ValueLayout.JAVA_SHORT.withName("wVirtualScanCode"),
+            MemoryLayout.unionLayout(
+                ValueLayout.JAVA_SHORT.withName("UnicodeChar"),
+                ValueLayout.JAVA_BYTE.withName("AsciiChar")
+            ).withName("Char"),
+            ValueLayout.JAVA_INT.withName("dwControlKeyState")
     );
 
     /**
@@ -47,10 +57,12 @@ final class Win32Layouts {
      * };
      * } INPUT_RECORD;
      */
-    @SuppressWarnings("preview")
     static final MemoryLayout INPUT_RECORD = MemoryLayout.structLayout(
         ValueLayout.JAVA_SHORT.withName("EventType"),
         ValueLayout.JAVA_SHORT.withName("Padding"),
-        MOUSE_EVENT_RECORD.withName("MouseEvent")
+        MemoryLayout.unionLayout(
+            KEY_EVENT_RECORD.withName("KeyEvent"),
+            MOUSE_EVENT_RECORD.withName("MouseEvent")
+        ).withName("Event")
     );
 }

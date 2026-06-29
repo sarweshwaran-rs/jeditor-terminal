@@ -1,4 +1,7 @@
 package com.tecs.application.input;
 
-public record MouseInputEvent() {
+import com.tecs.application.mouse.MouseEvent;
+
+public record MouseInputEvent(MouseEvent event) implements InputEvent{
+
 }
